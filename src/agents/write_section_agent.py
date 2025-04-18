@@ -15,11 +15,10 @@ class WriteSectionAgent:
     def node(cls):
         return cls.Name, cls().invoke
 
-    def invoke(self, state: SectionState,
-               config: RunnableConfig) -> Command[Literal[END, "search_web"]]:
+    def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         topic = state.topic
         section = state.section
         source_str = state.source_str
-        section.contenuto = "contenuto della sezione"
+        section.contenuto = f"contenuto della sezione [{section.nome}]"
 
-        return Command(update={"completed_sections": [section]}, goto=END)
+        return {"completed_sections": [section]}

@@ -44,22 +44,10 @@ class ChiefDeepReportAgent:
                               input=DeepReportStateInput, output=DeepReportStateOutput,
                               config_schema=Configuration)
 
-        # section writer sub-workflow
-        section_workflow = StateGraph(SectionState, output=SectionOutputState)
-        section_workflow.add_node(*GenerateQueriesAgent.node())
-        section_workflow.add_node(*SearchWebAgent.node())
-        section_workflow.add_node(*WriteSectionAgent.node())
-
-        # Add edges
-        section_workflow.add_edge(START, GenerateQueriesAgent.Name)
-        section_workflow.add_edge(GenerateQueriesAgent.Name, SearchWebAgent.Name)
-        section_workflow.add_edge(SearchWebAgent.Name, WriteSectionAgent.Name)
-
         # workflow nodes
         workflow.add_node(*ReportPlannerAgent.node())
         workflow.add_node(*HumanFeedbackAgent.node())
-        workflow.add_node(BuildSectionWithWebResearch.Name,section_workflow.compile())
-        # workflow.add_node(*BuildSectionWithWebResearch.node())
+        workflow.add_node(*BuildSectionWithWebResearch.node())
         workflow.add_node(*GatherCompletedSections.node())
 
         # workflow edges
