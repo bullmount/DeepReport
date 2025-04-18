@@ -1,0 +1,212 @@
+import demjson3
+from typing import Type, TypeVar, Optional, Union, Dict, Any, List
+from pydantic import BaseModel
+import re
+import json
+
+T = TypeVar('T', bound=BaseModel)
+
+
+def strip_thinking_tokens(text: str) -> str:
+    while "<think>" in text and "</think>" in text:
+        start = text.find("<think>")
+        end = text.find("</think>") + len("</think>")
+        text = text[:start] + text[end:]
+    return text
+
+def parse_model(model_class: Type[T], json_string: str) -> T:
+    json_string = strip_thinking_tokens(json_string)
+    json_string = _extract_valid_json(json_string) # json_string.replace("```json", "").replace("```","")
+    try:
+        # Pydantic v2
+        queries_obj = model_class.model_validate_json(json_string)
+    except AttributeError:
+        # Pydantic v1
+        queries_obj = model_class.parse_raw(json_string)
+
+    return queries_obj
+
+
+
+def _extract_valid_json(text: str, max_attempts: int = 5) -> Optional[str]:
+    cleaned_text = text.replace('\t', ' ').replace('\r', '')
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+
+    # Prova con il parsing diretto (potrebbe funzionare se il testo è già un JSON valido)
+    try:
+        json.loads(cleaned_text)
+        return cleaned_text
+    except json.JSONDecodeError:
+        pass
+
+    strategies = [
+        _extract_with_regex,
+        _extract_with_balanced_parser,
+        _extract_with_markdown_code_blocks,
+        _extract_with_line_based_approach,
+        _extract_with_fuzzy_matching
+    ]
+
+    # Limita i tentativi al numero di strategie disponibili
+    attempts = min(max_attempts, len(strategies))
+
+    # Prova ogni strategia in sequenza
+    for i in range(attempts):
+        result = strategies[i](cleaned_text)
+        if result is not None:
+            return result
+
+    return None
+
+
+def _extract_with_regex(text: str) -> Optional[str]:
+    """Estrae JSON usando pattern regex per oggetti e array."""
+    # Pattern per oggetti JSON con gestione nidificata
+    json_patterns = [
+        # Oggetti JSON
+        r'\{(?:[^{}]|(?:\{(?:[^{}]|(?:\{[^{}]*\}))*\}))*\}',
+        # Array JSON
+        r'\[(?:[^\[\]]|(?:\[(?:[^\[\]]|(?:\[[^\[\]]*\]))*\]))*\]'
+    ]
+
+    for pattern in json_patterns:
+        matches = re.findall(pattern, text)
+        for potential_json in matches:
+            try:
+                json.loads(potential_json)
+                return potential_json
+            except json.JSONDecodeError:
+                continue
+
+    return None
+
+
+def _extract_with_balanced_parser(text: str) -> Optional[str]:
+    """Estrae JSON usando un parser che bilancia parentesi e gestisce le stringhe correttamente."""
+    candidates = []
+
+    # Cerca entrambi i tipi di aperture JSON
+    for start_char, end_char in [('{', '}'), ('[', ']')]:
+        start_index = text.find(start_char)
+        if start_index == -1:
+            continue
+
+        stack = []
+        in_string = False
+        escape_next = False
+
+        for i, char in enumerate(text[start_index:]):
+            if escape_next:
+                escape_next = False
+                continue
+
+            if char == '\\':
+                escape_next = True
+                continue
+
+            if char == '"' and not escape_next:
+                in_string = not in_string
+                continue
+
+            if in_string:
+                continue
+
+            if char == start_char:
+                stack.append(char)
+            elif char == end_char:
+                if stack and stack[-1] == start_char:
+                    stack.pop()
+                    if not stack:  # Abbiamo trovato una struttura JSON completa
+                        potential_json = text[start_index:start_index + i + 1]
+                        try:
+                            json.loads(potential_json)
+                            candidates.append((start_index, potential_json))
+                        except json.JSONDecodeError:
+                            pass
+
+    # Restituisci il JSON che inizia prima nel testo
+    if candidates:
+        candidates.sort(key=lambda x: x[0])
+        return candidates[0][1]
+
+    return None
+
+
+def _extract_with_markdown_code_blocks(text: str) -> Optional[Union[Dict[str, Any], List[Any]]]:
+    """Cerca JSON in blocchi di codice markdown."""
+    # Cerca JSON in blocchi di codice markdown
+    code_block_patterns = [
+        r'```(?:json)?\s*([\s\S]*?)```',  # Markdown code blocks
+        r'`([\s\S]*?)`'  # Inline code blocks
+    ]
+
+    for pattern in code_block_patterns:
+        matches = re.findall(pattern, text)
+        for code_content in matches:
+            code_content = code_content.strip()
+            try:
+                if code_content.startswith('{') or code_content.startswith('['):
+                    json.loads(code_content)
+                    return code_content
+            except json.JSONDecodeError:
+                continue
+
+    return None
+
+
+def _extract_with_line_based_approach(text: str) -> Optional[str]:
+    """
+    Cerca JSON analizzando il testo riga per riga,
+    identificando dove può iniziare e finire un JSON.
+    """
+    lines = text.split('\n')
+
+    for i in range(len(lines)):
+        line = lines[i].strip()
+        # Cerca linee che potrebbero iniziare un JSON
+        if line.startswith('{') or line.startswith('['):
+            for j in range(i, len(lines)):
+                end_line = lines[j].strip()
+                if (line.startswith('{') and end_line.endswith('}')) or \
+                        (line.startswith('[') and end_line.endswith(']')):
+                    # Potenziale blocco JSON trovato
+                    potential_json = '\n'.join(lines[i:j + 1])
+                    try:
+                        json.loads(potential_json)
+                        return potential_json
+                    except json.JSONDecodeError:
+                        # Prova a rimuovere commenti o testo in eccesso
+                        cleaned = re.sub(r'//.*$|/\*[\s\S]*?\*/', '', potential_json, flags=re.MULTILINE)
+                        try:
+                            json.loads(cleaned)
+                            return cleaned
+                        except json.JSONDecodeError:
+                            continue
+
+    return None
+
+
+def _extract_with_fuzzy_matching(text: str) -> Optional[str]:
+    """
+    Approccio fuzzy per JSON malformati: cerca di correggere errori comuni
+    come virgole finali, virgolette non corrispondenti, ecc.
+    """
+    # Cerca parti che sembrano JSON
+    json_like_patterns = [
+        r'(\{[\s\S]*?\})',
+        r'(\[[\s\S]*?\])'
+    ]
+
+    for pattern in json_like_patterns:
+        matches = re.findall(pattern, text)
+        for potential_json in matches:
+            try:
+                data =  demjson3.decode(potential_json)
+                json_string = json.dumps(data)
+                return json_string
+            except json.JSONDecodeError:
+                continue
+
+    return None
+
+
