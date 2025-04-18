@@ -4,9 +4,13 @@ from langchain_core.runnables import RunnableConfig
 from agents import ReportPlannerAgent
 from agents.build_section_with_web_research import BuildSectionWithWebResearch
 from agents.gather_completed_sections_agent import GatherCompletedSections
+from agents.generate_queries_agent import GenerateQueriesAgent
 from agents.human_feedback_agent import HumanFeedbackAgent
+from agents.search_web_agent import SearchWebAgent
+from agents.write_section_agent import WriteSectionAgent
 from configuration import Configuration
-from deep_report_state import DeepReportState, DeepReportStateInput, DeepReportStateOutput
+from deep_report_state import DeepReportState, DeepReportStateInput, DeepReportStateOutput, SectionState, \
+    SectionOutputState
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import  Command
 
@@ -39,17 +43,30 @@ class ChiefDeepReportAgent:
         workflow = StateGraph(DeepReportState,
                               input=DeepReportStateInput, output=DeepReportStateOutput,
                               config_schema=Configuration)
+
+        # section writer sub-workflow
+        section_workflow = StateGraph(SectionState, output=SectionOutputState)
+        section_workflow.add_node(*GenerateQueriesAgent.node())
+        section_workflow.add_node(*SearchWebAgent.node())
+        section_workflow.add_node(*WriteSectionAgent.node())
+
+        # Add edges
+        section_workflow.add_edge(START, GenerateQueriesAgent.Name)
+        section_workflow.add_edge(GenerateQueriesAgent.Name, SearchWebAgent.Name)
+        section_workflow.add_edge(SearchWebAgent.Name, WriteSectionAgent.Name)
+
         # workflow nodes
         workflow.add_node(*ReportPlannerAgent.node())
         workflow.add_node(*HumanFeedbackAgent.node())
-        workflow.add_node(*BuildSectionWithWebResearch.node())
+        workflow.add_node(BuildSectionWithWebResearch.Name,section_workflow.compile())
+        # workflow.add_node(*BuildSectionWithWebResearch.node())
         workflow.add_node(*GatherCompletedSections.node())
 
         # workflow edges
         workflow.set_entry_point(ReportPlannerAgent.Name)
         workflow.add_edge(ReportPlannerAgent.Name, HumanFeedbackAgent.Name)
         workflow.add_edge(BuildSectionWithWebResearch.Name, GatherCompletedSections.Name)
-
+        # todo:  altra parte di grafo
         workflow.add_edge(GatherCompletedSections.Name, END)
 
         return workflow
@@ -77,7 +94,7 @@ class ChiefDeepReportAgent:
                     interrupt_value = event['__interrupt__'][0].value
                     if '__interrupt__' in event:
                         interrupt_value = event['__interrupt__'][0].value
-                        human_response = "no" # input(interrupt_value['question'])
+                        human_response = "si" # input(interrupt_value['question'])
                         current_input = Command(resume=human_response)
             if chain.get_state(self._config).next == ():
                 break
