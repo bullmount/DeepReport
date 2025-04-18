@@ -13,18 +13,25 @@ from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
 from utils.utils import get_config_value
 from langchain.chat_models import init_chat_model
-from  pathlib import Path
+from pathlib import Path
+
 
 class ReportPlannerAgent():
+    Name = "generate_report_plan"
+
     def __init__(self, ):
         pass
+
+    @classmethod
+    def node(cls):
+        return cls.Name, cls().invoke
 
     def invoke(self, state: DeepReportState, config: RunnableConfig) -> Dict[str, any]:
         topic = state.topic
         feedback = state.feedback_on_report_plan
 
         file_path = Path("sections.json")
-        if not feedback and  file_path.exists():
+        if not feedback and file_path.exists():
             data = file_path.read_text(encoding="utf-8")
             sections_loaded = Sections.model_validate_json(data)
             return {"sections": sections_loaded.sezioni}

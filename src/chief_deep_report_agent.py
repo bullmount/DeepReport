@@ -1,6 +1,4 @@
-import os
 import time
-from enum import Enum
 from langgraph.graph import END, StateGraph, START
 from langchain_core.runnables import RunnableConfig
 from agents import ReportPlannerAgent
@@ -10,20 +8,7 @@ from agents.human_feedback_agent import HumanFeedbackAgent
 from configuration import Configuration
 from deep_report_state import DeepReportState, DeepReportStateInput, DeepReportStateOutput
 from langgraph.checkpoint.memory import MemorySaver
-from IPython.display import Markdown
-from IPython.display import Image, display
-from langgraph.types import interrupt, Command
-
-class Agents(Enum):
-    GENERATE_REPORT_PLAN = "generate_report_plan"
-    HUMAN_FEEDBACK = "human_feedback"
-    BUILD_SECTION_WITH_WEB_RESEARCH = "build_section_with_web_research"
-    GATHER_COMPLETED_SECTIONS = "gather_completed_sections"
-    ARXIV = "arxiv"
-    PUBMED = "pubmed"
-    LINKUP = "linkup"
-    DUCKDUCKGO = "duckduckgo"
-    GOOGLESEARCH = "googlesearch"
+from langgraph.types import  Command
 
 
 class ChiefDeepReportAgent:
@@ -50,40 +35,22 @@ class ChiefDeepReportAgent:
         )
         self._config = config
 
-    def _init_research_team(self):
-        agents = self._initialize_agents()
-        return self._create_workflow(agents)
-
-    # def _generate_task_id(self):
-    #     return int(time.time())
-
-    def _initialize_agents(self):
-        return {
-            Agents.GENERATE_REPORT_PLAN.value: ReportPlannerAgent(),
-            Agents.HUMAN_FEEDBACK.value: HumanFeedbackAgent(),
-            Agents.BUILD_SECTION_WITH_WEB_RESEARCH.value: BuildSectionWithWebResearch(),
-            Agents.GATHER_COMPLETED_SECTIONS.value: GatherCompletedSections()
-        }
-
-    def _create_workflow(self, agents):
+    def _init_research_team(self) -> StateGraph:
         workflow = StateGraph(DeepReportState,
                               input=DeepReportStateInput, output=DeepReportStateOutput,
                               config_schema=Configuration)
-
-        workflow.add_node(Agents.GENERATE_REPORT_PLAN.value, agents[Agents.GENERATE_REPORT_PLAN.value].invoke)
-        workflow.add_node(Agents.HUMAN_FEEDBACK.value, agents[Agents.HUMAN_FEEDBACK.value].invoke)
-        workflow.add_node(Agents.BUILD_SECTION_WITH_WEB_RESEARCH.value,
-                          agents[Agents.BUILD_SECTION_WITH_WEB_RESEARCH.value].invoke)
-        workflow.add_node(Agents.GATHER_COMPLETED_SECTIONS.value,
-                          agents[Agents.GATHER_COMPLETED_SECTIONS.value].invoke)
+        # workflow nodes
+        workflow.add_node(*ReportPlannerAgent.node())
+        workflow.add_node(*HumanFeedbackAgent.node())
+        workflow.add_node(*BuildSectionWithWebResearch.node())
+        workflow.add_node(*GatherCompletedSections.node())
 
         # workflow edges
-        workflow.set_entry_point(Agents.GENERATE_REPORT_PLAN.value)
-        workflow.add_edge(Agents.GENERATE_REPORT_PLAN.value, Agents.HUMAN_FEEDBACK.value)
-        workflow.add_edge(Agents.BUILD_SECTION_WITH_WEB_RESEARCH.value, Agents.GATHER_COMPLETED_SECTIONS.value)
+        workflow.set_entry_point(ReportPlannerAgent.Name)
+        workflow.add_edge(ReportPlannerAgent.Name, HumanFeedbackAgent.Name)
+        workflow.add_edge(BuildSectionWithWebResearch.Name, GatherCompletedSections.Name)
 
-        workflow.add_edge(Agents.GATHER_COMPLETED_SECTIONS.value, END)
-        # workflow.add_edge(str(Agents.GENERATE_REPORT_PLAN), END)
+        workflow.add_edge(GatherCompletedSections.Name, END)
 
         return workflow
 
@@ -99,9 +66,8 @@ class ChiefDeepReportAgent:
 
         chain.get_graph().draw_mermaid_png(output_file_path="chief_deep_report_agent.png")
 
+        # todo: remove
         # res = chain.invoke(initial_state, config=self._config)
-        # hres = input("ciao")
-        # res = chain.invoke(Command(resume=hres), config=self._config)
 
         current_input = initial_state
 
@@ -111,7 +77,7 @@ class ChiefDeepReportAgent:
                     interrupt_value = event['__interrupt__'][0].value
                     if '__interrupt__' in event:
                         interrupt_value = event['__interrupt__'][0].value
-                        human_response = "si" # input(interrupt_value['question'])
+                        human_response = "no" # input(interrupt_value['question'])
                         current_input = Command(resume=human_response)
             if chain.get_state(self._config).next == ():
                 break

@@ -19,8 +19,14 @@ from langgraph.constants import Send
 
 
 class HumanFeedbackAgent():
+    Name = "human_feedback"
+
     def __init__(self):
         pass
+
+    @classmethod
+    def node(cls):
+        return cls.Name, cls().invoke
 
     def invoke(self, state: DeepReportState,
                config: RunnableConfig) -> Command[Literal["generate_report_plan", "build_section_with_web_research"]]:
