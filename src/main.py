@@ -6,6 +6,11 @@ load_dotenv()
 if __name__ == '__main__':
 
     deep_report = ChiefDeepReportAgent()
-    res = deep_report.invoke("economia città di Ancona")
+    # res = deep_report.invoke("ultimi aggiornamenti nella valutazione rischio chimico MoVaRisCh")
+    res = deep_report.invoke("andamento attuale economia di Ancona")
     print(res)
+
+    with open("final_report.md", "w", encoding="utf-8") as md_file:
+        md_file.write(res['final_report'])
+
     print("**** DONE ****")

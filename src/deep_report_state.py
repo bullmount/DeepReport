@@ -37,13 +37,15 @@ class Sections(BaseModel):
         description="Sezioni del report.",
     )
 
+
 class Feedback(BaseModel):
-    grade: Literal["pass","fail"] = Field(
+    grade: Literal["pass", "fail"] = Field(
         description="Risultato della valutazione che indica se la risposta soddisfa i requisiti ('pass') o necessita di revisione ('fail')."
     )
     follow_up_queries: List[SearchQuery] = Field(
         description="Elenco delle query di ricerca di approfondimento.",
     )
+
 
 # -------------------------------------------------------------------------------------
 
@@ -64,6 +66,9 @@ class DeepReportState():
     final_report: str = field(default=None)
     sections: list[Section] = field(default=None)  # List of report sections
     completed_sections: Annotated[list, operator.add]  # Send() API key
+    report_sections_from_research: str = field(
+        default=None)  # String of any completed sections from research to write final sections
+    final_report: str = field(default=None)  # Final report
 
 
 @dataclass(kw_only=True)
@@ -75,6 +80,7 @@ class SectionState():
     source_str: str = field(default=None)  # String of formatted source content from web search
     report_sections_from_research: str = field(
         default=None)  # String of any completed sections from research to write final sections
+    completed_sections: list[Section]
 
 
 @dataclass(kw_only=True)

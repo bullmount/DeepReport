@@ -1,5 +1,4 @@
-import os
-from typing import Dict, Literal
+from typing import Dict
 
 from langgraph.constants import START, END
 from langgraph.graph import StateGraph
@@ -7,11 +6,10 @@ from langgraph.graph import StateGraph
 from agents.generate_queries_agent import GenerateQueriesAgent
 from agents.search_web_agent import SearchWebAgent
 from agents.write_section_agent import WriteSectionAgent
-from deep_report_state import DeepReportState, SectionState, SectionOutputState
+from deep_report_state import  SectionState, SectionOutputState
 from langchain_core.runnables import RunnableConfig
 
 
-# todo: rimuovere e mettere al suo interino il sotto grafo
 class BuildSectionWithWebResearch:
     Name = "build_section_with_web_research"
 

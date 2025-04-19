@@ -1,18 +1,9 @@
 import os
+from pathlib import Path
 from typing import Dict, Literal
-
-from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableConfig
-from langchain_core.messages import HumanMessage, SystemMessage
-from configuration import Configuration
+from agents.gather_completed_sections_agent import GatherCompletedSections
 from deep_report_state import DeepReportState, Queries, Sections, SectionState
-from prompts import report_planner_query_writer_instructions, report_planner_instructions
-from search_system import SearchSystem
-from utils.json_extractor import parse_model
-from utils.llm_provider import llm_provide
-from utils.sources_formatter import SourcesFormatter
-from utils.utils import get_config_value
-from langchain.chat_models import init_chat_model
 from langgraph.types import interrupt, Command
 from langgraph.constants import Send
 
@@ -48,6 +39,15 @@ class HumanFeedbackAgent():
 
         feedback = interrupt({"question":interrupt_message})
 
+        #todo: remove -------------------------------
+        file_path = Path("completed_sections.json")
+        if file_path.exists():
+            data = file_path.read_text(encoding="utf-8")
+            sections_loaded = Sections.model_validate_json(data)
+            return Command(update={"completed_sections": sections_loaded.sezioni},
+                           goto=GatherCompletedSections.Name)
+        # --------------------------------------
+
         if isinstance(feedback, str):
             if feedback.lower() == "si" or feedback.lower() == "ok":
                 feedback = True
@@ -55,10 +55,13 @@ class HumanFeedbackAgent():
         # If the user approves the report plan, kick off section writing
         if isinstance(feedback, bool) and feedback is True:
             # Treat this as approve and kick off section writing
-            return Command(goto=[
-                Send("build_section_with_web_research",
-                     SectionState(topic=topic,section=s,search_iterations=0)
-                     # {"topic": topic, "section": s, "search_iterations": 0}
+            if len([s for s in sections if s.ricerca]) == 0:
+                return Command(goto=GatherCompletedSections.Name,
+                               update={})
+            else:
+                return Command(goto=[
+                    Send("build_section_with_web_research",
+                         SectionState(topic=topic,section=s,search_iterations=0)
                     )
                 for s in sections if s.ricerca])
         elif isinstance(feedback, str):

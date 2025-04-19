@@ -33,8 +33,8 @@ class SearchAPI(Enum):
 class Configuration:
     """The configurable fields for the chatbot."""
     report_structure: str = DEFAULT_REPORT_STRUCTURE # Defaults to the default report structure
-    number_of_queries: int = 2 # Number of search queries to generate per iteration
-    max_search_depth: int = 2 # Maximum number of reflection + search iterations
+    number_of_queries: int = 2 # default(2) Number of search queries to generate per iteration
+    max_search_depth: int = 2 # default(2) Maximum number of reflection + search iterations
     planner_provider: str = "openrouter"  # Defaults to Anthropic as provider
     planner_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-7-sonnet-latest
     writer_provider: str = "openrouter" # Defaults to Anthropic as provider

@@ -24,9 +24,11 @@ from search_engines.search_engine_google import GoogleSearchEngine
 import ssl
 from requests.adapters import HTTPAdapter
 import threading
+
 logger = logging.getLogger(__name__)
 
 lock = threading.Lock()
+
 
 class SSLIgnoreAdapter(HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
@@ -35,6 +37,7 @@ class SSLIgnoreAdapter(HTTPAdapter):
         context.verify_mode = ssl.CERT_NONE  # ❗️POI IMPOSTA verify_mode
         kwargs['ssl_context'] = context
         return super().init_poolmanager(*args, **kwargs)
+
 
 class SearchSystem:
     def __init__(self, search_api: SearchAPI):
@@ -91,13 +94,12 @@ class SearchSystem:
         top_results = self._rank_search_results(all_results, max_filtered_results, include_raw_content)
         return top_results[:max_filtered_results]
 
-
     def _create_search_engine(self) -> BaseSearchEngine:
         if self._search_api == SearchAPI.GOOGLESEARCH:
             return GoogleSearchEngine()
         elif self._search_api == SearchAPI.DUCKDUCKGO:
             return DuckDuckGoSearchEngine()
-        elif self._search_api ==  SearchAPI.TAVILY:
+        elif self._search_api == SearchAPI.TAVILY:
             return TavilySearchEngine()
         else:
             raise ValueError("Invalid search engine name")
@@ -105,8 +107,13 @@ class SearchSystem:
     @staticmethod
     def _fetch_raw_content(url: str) -> Optional[str]:
         try:
-            if (url.lower().endswith(".pdf") or
-                    "application/pdf" in requests.head(url, allow_redirects=True).headers.get("Content-Type", "")):
+            session = requests.Session()
+            session.verify = False
+            session.mount("https://", SSLIgnoreAdapter())
+            head_resp = session.head(url, allow_redirects=True)
+            content_type = head_resp.headers.get("Content-Type", "")
+
+            if (url.lower().endswith(".pdf") or "application/pdf" in content_type):
                 scraper = cloudscraper.create_scraper()  # crea un sessione che esegue JS-challenge
                 scraper.mount("https://", SSLIgnoreAdapter())
                 response = scraper.get(url, verify=False)
@@ -126,7 +133,7 @@ class SearchSystem:
                     java_script_enabled=True,
                 )
                 page = context.new_page()
-                page.goto(url, wait_until="load",timeout=60*1000)  # 60 sec.
+                page.goto(url, wait_until="load", timeout=60 * 1000)  # 60 sec.
                 html = page.content()
                 doc = Document(html)
                 contenuto_html = doc.summary()
@@ -134,7 +141,6 @@ class SearchSystem:
         except Exception as e:
             logger.warning(f"Warning: Failed to fetch full page content for {url}: {str(e)}")
             return None
-
 
     def _rank_search_results(self, results: List[SearchEngResult], top_n: int,
                              include_raw_content: bool) -> List[SearchEngResult]:

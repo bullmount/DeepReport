@@ -189,62 +189,62 @@ La risposta deve essere in formato JSON valido secondo questo schema:
 </format>
 """
 
-final_section_writer_instructions="""You are an expert technical writer crafting a section that synthesizes information from the rest of the report.
+final_section_writer_instructions="""Sei un esperto scrittore tecnico che crea una sezione che sintetizza le informazioni dal resto del rapporto.
 
-<Report topic>
+<Argomento del rapporto>
 {topic}
-</Report topic>
+</Argomento del rapporto>
 
-<Section name>
+<Nome della sezione>
 {section_name}
-</Section name>
+</Nome della sezione>
 
-<Section topic> 
+<Argomento della sezione> 
 {section_topic}
-</Section topic>
+</Argomento della sezione>
 
-<Available report content>
+<Contenuto disponibile del rapporto>
 {context}
-</Available report content>
+</Contenuto disponibile del rapporto>
 
 <Task>
-1. Section-Specific Approach:
+1. Approccio specifico per sezione:
 
-For Introduction:
-- Use # for report title (Markdown format)
-- 50-100 word limit
-- Write in simple and clear language
-- Focus on the core motivation for the report in 1-2 paragraphs
-- Use a clear narrative arc to introduce the report
-- Include NO structural elements (no lists or tables)
-- No sources section needed
+Per l'Introduzione:
+- Usa # per il titolo del rapporto (formato Markdown)
+- Limite di 50-100 parole
+- Scrivi in linguaggio semplice e chiaro
+- Concentrati sulla motivazione principale del rapporto in 1-2 paragrafi
+- Usa una struttura narrativa chiara per introdurre il rapporto
+- NON includere elementi strutturali (niente elenchi o tabelle)
+- Sezione fonti non necessaria
 
-For Conclusion/Summary:
-- Use ## for section title (Markdown format)
-- 100-150 word limit
-- For comparative reports:
-    * Must include a focused comparison table using Markdown table syntax
-    * Table should distill insights from the report
-    * Keep table entries clear and concise
-- For non-comparative reports: 
-    * Only use ONE structural element IF it helps distill the points made in the report:
-    * Either a focused table comparing items present in the report (using Markdown table syntax)
-    * Or a short list using proper Markdown list syntax:
-      - Use `*` or `-` for unordered lists
-      - Use `1.` for ordered lists
-      - Ensure proper indentation and spacing
-- End with specific next steps or implications
-- No sources section needed
+Per la Conclusione/Riassunto:
+- Usa ## per il titolo della sezione (formato Markdown)
+- Limite di 100-150 parole
+- Per rapporti comparativi:
+    * Deve includere una tabella di confronto mirata utilizzando la sintassi delle tabelle Markdown
+    * La tabella dovrebbe distillare le informazioni chiave dal rapporto
+    * Mantieni le voci della tabella chiare e concise
+- Per rapporti non comparativi: 
+    * Utilizza UN SOLO elemento strutturale SOLO SE aiuta a distillare i punti fatti nel rapporto:
+    * O una tabella mirata che confronta elementi presenti nel rapporto (usando la sintassi delle tabelle Markdown)
+    * Oppure un breve elenco usando la corretta sintassi Markdown:
+      - Usa `*` o `-` per elenchi non ordinati
+      - Usa `1.` per elenchi ordinati
+      - Assicura la corretta indentazione e spaziatura
+- Concludi con specifici passi successivi o implicazioni
+- Sezione fonti non necessaria
 
-3. Writing Approach:
-- Use concrete details over general statements
-- Make every word count
-- Focus on your single most important point
+3. Approccio alla scrittura:
+- Usa dettagli concreti invece di affermazioni generali
+- Fai contare ogni parola
+- Concentrati sul tuo punto più importante
 </Task>
 
 <Quality Checks>
-- For introduction: 50-100 word limit, # for report title, no structural elements, no sources section
-- For conclusion: 100-150 word limit, ## for section title, only ONE structural element at most, no sources section
-- Markdown format
-- Do not include word count or any preamble in your response
+- Per l'introduzione: limite di 50-100 parole, # per il titolo del rapporto, nessun elemento strutturale, nessuna sezione fonti
+- Per la conclusione: limite di 100-150 parole, ## per il titolo della sezione, al massimo UN elemento strutturale, nessuna sezione fonti
+- Formato Markdown
+- Non includere il conteggio delle parole o qualsiasi preambolo nella tua risposta
 </Quality Checks>"""

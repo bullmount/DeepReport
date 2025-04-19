@@ -1,3 +1,4 @@
+cloudscraper
 demjson3
 dotenv
 duckduckgo_search
@@ -20,3 +21,5 @@ pytest
 readability-lxml
 requests
 scikit-learn
+selenium
+webdriver-manager
