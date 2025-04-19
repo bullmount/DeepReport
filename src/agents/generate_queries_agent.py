@@ -1,7 +1,14 @@
 from typing import Dict
+
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
-from deep_report_state import SectionState
-from tests.test_json_schema import SearchQuery
+
+from configuration import Configuration
+from deep_report_state import SectionState, Queries
+from prompts import query_writer_instructions
+from utils.json_extractor import parse_model
+from utils.llm_provider import llm_provide
+from utils.utils import get_config_value
 
 
 class GenerateQueriesAgent:
@@ -18,8 +25,20 @@ class GenerateQueriesAgent:
         topic = state.topic
         section = state.section
 
-        dummy = [
-            SearchQuery(search_query="dummy query 1"),
-            SearchQuery(search_query="dummy query 2")
-        ]
-        return {"search_queries": dummy}
+        configurable = Configuration.from_runnable_config(config)
+        number_of_queries = configurable.number_of_queries
+
+        writer_provider = get_config_value(configurable.writer_provider)
+        writer_model_name = get_config_value(configurable.writer_model)
+
+        structured_llm = llm_provide(writer_model_name, writer_provider)
+
+        system_instructions = query_writer_instructions.format(topic=topic,
+                                                               section_topic=section.descrizione,
+                                                               number_of_queries=number_of_queries,
+                                                               json_format=Queries.model_json_schema())
+        results = structured_llm.invoke([SystemMessage(content=system_instructions),
+                                         HumanMessage(content="Genera query di ricerca sull’argomento fornito.")])
+        queries: Queries = parse_model(Queries, results.content)
+
+        return {"search_queries": queries.queries}

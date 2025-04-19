@@ -37,6 +37,13 @@ class Sections(BaseModel):
         description="Sezioni del report.",
     )
 
+class Feedback(BaseModel):
+    grade: Literal["pass","fail"] = Field(
+        description="Risultato della valutazione che indica se la risposta soddisfa i requisiti ('pass') o necessita di revisione ('fail')."
+    )
+    follow_up_queries: List[SearchQuery] = Field(
+        description="Elenco delle query di ricerca di approfondimento.",
+    )
 
 # -------------------------------------------------------------------------------------
 

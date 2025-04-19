@@ -1,3 +1,4 @@
+import cloudscraper
 import requests
 import math
 
@@ -20,8 +21,20 @@ from configuration import SearchAPI
 from search_engines.search_engine_base import SearchEngResult, BaseSearchEngine
 from search_engines.search_engine_ddg import DuckDuckGoSearchEngine
 from search_engines.search_engine_google import GoogleSearchEngine
-
+import ssl
+from requests.adapters import HTTPAdapter
+import threading
 logger = logging.getLogger(__name__)
+
+lock = threading.Lock()
+
+class SSLIgnoreAdapter(HTTPAdapter):
+    def init_poolmanager(self, *args, **kwargs):
+        context = ssl.create_default_context()
+        context.check_hostname = False  # ❗️DISATTIVA PRIMA
+        context.verify_mode = ssl.CERT_NONE  # ❗️POI IMPOSTA verify_mode
+        kwargs['ssl_context'] = context
+        return super().init_poolmanager(*args, **kwargs)
 
 class SearchSystem:
     def __init__(self, search_api: SearchAPI):
@@ -94,18 +107,26 @@ class SearchSystem:
         try:
             if (url.lower().endswith(".pdf") or
                     "application/pdf" in requests.head(url, allow_redirects=True).headers.get("Content-Type", "")):
-                response = requests.get(url)
-                response.raise_for_status()
+                scraper = cloudscraper.create_scraper()  # crea un sessione che esegue JS-challenge
+                scraper.mount("https://", SSLIgnoreAdapter())
+                response = scraper.get(url, verify=False)
                 pdf_bytes = response.content
                 doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-                testo = pymupdf4llm.to_markdown(doc)
-                return testo.strip() if testo else "[Nessun testo estraibile dal PDF]"
+                with lock:
+                    # da eseguire in mutua esclusione
+                    testo = pymupdf4llm.to_markdown(doc)
+                    return testo.strip() if testo else "[Nessun testo estraibile dal PDF]"
 
             # Create a client with reasonable timeout
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)  # headless=False per vedere il browser
-                page = browser.new_page()
-                page.goto(url, wait_until="networkidle")
+                context = browser.new_context(
+                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+                    viewport={"width": 1280, "height": 800},
+                    java_script_enabled=True,
+                )
+                page = context.new_page()
+                page.goto(url, wait_until="load",timeout=60*1000)  # 60 sec.
                 html = page.content()
                 doc = Document(html)
                 contenuto_html = doc.summary()

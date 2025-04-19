@@ -78,64 +78,65 @@ La risposta deve essere in formato JSON secondo questo schema:
 </Format>
 """
 
-query_writer_instructions="""You are an expert technical writer crafting targeted web search queries that will gather comprehensive information for writing a technical report section.
+query_writer_instructions="""Sei un redattore tecnico esperto che crea query di ricerca web mirate per raccogliere informazioni esaustive utili alla stesura di una sezione di documento tecnico.
 
-<Report topic>
-{topic}
-</Report topic>
+<Argomento del documento>  
+{topic}  
+</Argomento del documento>
 
-<Section topic>
+<Argomento della sezione> 
 {section_topic}
-</Section topic>
+</Argomento della sezione>
 
 <Task>
-Your goal is to generate {number_of_queries} search queries that will help gather comprehensive information above the section topic. 
+Il tuo obiettivo è generare {number_of_queries} query di ricerca che aiutino a raccogliere informazioni esaustive sull’argomento della sezione.
 
-The queries should:
+Le query devono:
 
-1. Be related to the topic 
-2. Examine different aspects of the topic
+1. Essere correlate all’argomento  
+2. Esplorare diversi aspetti dell’argomento
 
-Make the queries specific enough to find high-quality, relevant sources.
+Rendi le query sufficientemente specifiche da individuare fonti di alta qualità e pertinenti.  
 </Task>
 
-<Format>
-Call the Queries tool 
+<Formato>
+La risposta deve essere in formato JSON secondo questo schema:
+{json_format}
 </Format>
 """
 
-section_writer_instructions = """Write one section of a research report.
+section_writer_instructions = """Scrivi una sezione di un rapporto di ricerca.
 
 <Task>
-1. Review the report topic, section name, and section topic carefully.
-2. If present, review any existing section content. 
-3. Then, look at the provided Source material.
-4. Decide the sources that you will use it to write a report section.
-5. Write the report section and list your sources. 
+1. Esamina attentamente l'argomento del rapporto, il nome della sezione e l'argomento della sezione.
+2. Se presente, esamina qualsiasi contenuto esistente della sezione.
+3. Quindi, esamina il materiale Fonte fornito.
+4. Decidi quali fonti utilizzerai per scrivere una sezione del rapporto.
+5. Scrivi la sezione del rapporto ed elenca le tue fonti.
 </Task>
 
 <Writing Guidelines>
-- If existing section content is not populated, write from scratch
-- If existing section content is populated, synthesize it with the source material
-- Strict 150-200 word limit
-- Use simple, clear language
-- Use short paragraphs (2-3 sentences max)
-- Use ## for section title (Markdown format)
+- Se il contenuto della sezione esistente non è popolato, scrivi da zero
+- Se il contenuto della sezione esistente è popolato, sintetizzalo con il materiale fonte
+- Limite rigoroso di 150-200 parole
+- Usa un linguaggio semplice e chiaro
+- Usa paragrafi brevi (massimo 2-3 frasi)
+- Usa ## per il titolo della sezione (formato Markdown)
 </Writing Guidelines>
 
 <Citation Rules>
-- Assign each unique URL a single citation number in your text
-- End with ### Sources that lists each source with corresponding numbers
-- IMPORTANT: Number sources sequentially without gaps (1,2,3,4...) in the final list regardless of which sources you choose
-- Example format:
-  [1] Source Title: URL
-  [2] Source Title: URL
+- Assegna a ciascun URL univoco un solo numero di citazione nel tuo testo
+- Termina con ### Fonti che elenca ogni fonte con i numeri corrispondenti
+- IMPORTANTE: Numera le fonti in sequenza senza interruzioni (1,2,3,4...) nell'elenco finale indipendentemente da quali fonti scegli
+- Formato di esempio:
+  [1] Titolo Fonte: URL
+  [2] Titolo Fonte: URL
 </Citation Rules>
 
 <Final Check>
-1. Verify that EVERY claim is grounded in the provided Source material
-2. Confirm each URL appears ONLY ONCE in the Source list
-3. Verify that sources are numbered sequentially (1,2,3...) without any gaps
+1. Verifica che OGNI affermazione sia basata sul materiale Fonte fornito
+2. Conferma che ogni URL appaia SOLO UNA VOLTA nell'elenco delle Fonti
+3. Verifica che le fonti siano numerate in sequenza (1,2,3...) senza interruzioni
 </Final Check>
 """
 
@@ -161,7 +162,7 @@ section_writer_inputs="""
 </Source material>
 """
 
-section_grader_instructions = """Review a report section relative to the specified topic:
+section_grader_instructions = """Esamina una sezione del rapporto relativa all'argomento specificato:
 
 <Report topic>
 {topic}
@@ -176,19 +177,14 @@ section_grader_instructions = """Review a report section relative to the specifi
 </section content>
 
 <task>
-Evaluate whether the section content adequately addresses the section topic.
+Valuta con attenzione e rigore se il contenuto della sezione  tratta in modo completo e pertinente l'argomento della sezione.
 
-If the section content does not adequately address the section topic, generate {number_of_follow_up_queries} follow-up search queries to gather missing information.
+Se il contenuto della sezione non affronta in modo completo e pertinente l'argomento, genera {number_of_follow_up_queries} query di ricerca di approfondimento per raccogliere le informazioni mancanti.
 </task>
 
 <format>
-Call the Feedback tool and output with the following schema:
-
-grade: Literal["pass","fail"] = Field(
-    description="Evaluation result indicating whether the response meets requirements ('pass') or needs revision ('fail')."
-)
-follow_up_queries: List[SearchQuery] = Field(
-    description="List of follow-up search queries.",
+La risposta deve essere in formato JSON valido secondo questo schema:
+{json_format}
 )
 </format>
 """

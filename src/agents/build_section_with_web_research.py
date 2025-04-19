@@ -36,5 +36,4 @@ class BuildSectionWithWebResearch:
 
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         res = self._graph.invoke(state, config)
-        print(f"\nBuildSectionWithWebResearch: {state.section.nome}")
         return res
