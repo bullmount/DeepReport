@@ -73,14 +73,13 @@ class DeepReportState():
 
 @dataclass(kw_only=True)
 class SectionState():
-    topic: str = field(default=None)  # Report topic
-    section: Section = field(default=None)  # Report section
-    search_iterations: int = field(default=0)  # Number of search iterations done
-    search_queries: list[SearchQuery] = field(default=None)  # List of search queries
-    source_str: str = field(default=None)  # String of formatted source content from web search
-    report_sections_from_research: str = field(
-        default=None)  # String of any completed sections from research to write final sections
-    completed_sections: list[Section]
+    topic: str = field(default=None)
+    section: Section = field(default=None)
+    search_iterations: int = field(default=0)
+    search_queries: list[SearchQuery] = field(default=None)
+    source_str: str = field(default=None)
+    report_sections_from_research: str = field(default=None)
+    completed_sections: list[Section] = field(default=None)
 
 
 @dataclass(kw_only=True)

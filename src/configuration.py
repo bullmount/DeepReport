@@ -13,7 +13,7 @@ DEFAULT_REPORT_STRUCTURE = """Usa questa struttura per creare un report sull'arg
    - Breve panoramica dell'area tematica
 
 2. Sezioni principali:
-   - Ogni sezione deve concentrarsi su un sottoargomento relativo al tema fornito
+   - Ogni sezione deve concentrarsi su un sotto-argomento relativo al tema fornito
 
 3. Conclusione
    - Inserisci un solo elemento strutturale (una lista oppure una tabella) che sintetizzi le sezioni principali
@@ -39,7 +39,7 @@ class Configuration:
     planner_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-7-sonnet-latest
     writer_provider: str = "openrouter" # Defaults to Anthropic as provider
     writer_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-5-sonnet-latest
-    search_api: SearchAPI = SearchAPI.GOOGLESEARCH # Default to GOOGLE
+    search_api: SearchAPI = SearchAPI.DUCKDUCKGO # Default to GOOGLE
     search_api_config: Optional[Dict[str, Any]] = None
 
     @classmethod

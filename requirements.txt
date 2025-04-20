@@ -22,4 +22,5 @@ readability-lxml
 requests
 scikit-learn
 selenium
+urllib3
 webdriver-manager

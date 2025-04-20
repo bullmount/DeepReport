@@ -34,11 +34,10 @@ class WriteFinalSectionsAgent:
 
         writer_provider = get_config_value(configurable.writer_provider)
         writer_model_name = get_config_value(configurable.writer_model)
-
         writer_model = llm_provide(writer_model_name, writer_provider)
 
         section_content = writer_model.invoke([SystemMessage(content=system_instructions),
                                                HumanMessage(
-                                                   content="Generate a report section based on the provided sources.")])
+                                                   content="Genera una sezione del report basata sulle fonti fornite.")])
         section.contenuto = section_content.content
         return {"completed_sections": [section]}

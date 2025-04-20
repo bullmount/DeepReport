@@ -27,29 +27,30 @@ La risposta deve essere in formato JSON secondo questo schema:
 
 report_planner_instructions="""Voglio un piano per un report che sia conciso e mirato.
 
-<Argomento del report>
+<Report topic>
 L'argomento del report è:
 {topic}
-</Argomento del report>
+</Report topic>
 
-<Organizzazione del report>
+<Report organization>
 Il report dovrebbe seguire questa organizzazione: 
 {report_organization}
-</Organizzazione del report>
+</Report organization>
 
-<Contesto>
-Ecco il contesto da utilizzare per pianificare le sezioni del report: 
+<Context>
+Questo è il contesto da utilizzare per pianificare le sezioni del report: 
 {context}
-</Contesto>
+</Context>
 
 <Task>
-Genera un elenco di sezioni per il report. Il tuo piano deve essere essenziale e mirato SENZA sezioni sovrapposte o contenuti superflui.
+Genera un elenco di sezioni per il report. 
+Il tuo piano deve essere essenziale e mirato SENZA sezioni che si sovrappongono nei contenuti o con contenuti superflui.
 
 Ad esempio, una buona struttura di report potrebbe essere:
 1/ introduzione
 2/ panoramica dell'argomento A
 3/ panoramica dell'argomento B
-4/ confronto tra A e B
+4/ confronto tra A e B (se sono confrontabili)
 5/ conclusione
 
 Ogni sezione dovrebbe avere i seguenti campi:
@@ -60,9 +61,9 @@ Ogni sezione dovrebbe avere i seguenti campi:
 - Contenuto - Il contenuto della sezione, che per ora lascerai vuoto.
 
 Linee guida per l'integrazione:
-- Includi esempi e dettagli di implementazione all'interno delle sezioni degli argomenti principali, non come sezioni separate
-- Assicurati che ogni sezione abbia uno scopo distinto senza sovrapposizioni di contenuto
-- Combina concetti correlati invece di separarli
+- Includi esempi e dettagli di implementazione all'interno delle sezioni degli argomenti principali, non come sezioni separate.
+- Assicurati che ogni sezione abbia uno scopo distinto senza sovrapposizioni di contenuto con altre sezioni.
+- Combina concetti correlati in una unica sezione invece di separarli in diverse sezioni.
 
 Prima di inviare, rivedi la tua struttura per assicurarti che non abbia sezioni ridondanti e segua un flusso logico.
 </Task>
@@ -78,13 +79,13 @@ La risposta deve essere in formato JSON secondo questo schema:
 </Format>
 """
 
-query_writer_instructions="""Sei un redattore tecnico esperto che crea query di ricerca web mirate per raccogliere informazioni esaustive utili alla stesura di una sezione di documento tecnico.
+query_writer_instructions="""Sei un redattore tecnico esperto che crea query di ricerca web mirate per raccogliere informazioni esaustive utili alla stesura di una sezione di un report tecnico.
 
-<Argomento del documento>  
+<Argomento del report>
 {topic}  
-</Argomento del documento>
+</Argomento del report>
 
-<Argomento della sezione> 
+<Argomento della sezione>
 {section_topic}
 </Argomento della sezione>
 
@@ -93,8 +94,8 @@ Il tuo obiettivo è generare {number_of_queries} query di ricerca che aiutino a 
 
 Le query devono:
 
-1. Essere correlate all’argomento  
-2. Esplorare diversi aspetti dell’argomento
+1. Essere correlate all’argomento.
+2. Esplorare diversi aspetti dell’argomento.
 
 Rendi le query sufficientemente specifiche da individuare fonti di alta qualità e pertinenti.  
 </Task>
@@ -141,43 +142,43 @@ section_writer_instructions = """Scrivi una sezione di un rapporto di ricerca.
 """
 
 section_writer_inputs=""" 
-<Report topic>
+<Argomento del report>
 {topic}
-</Report topic>
+</Argomento del report>
 
-<Section name>
+<Nome della sezione>
 {section_name}
-</Section name>
+</Nome della sezione>
 
-<Section topic>
+<Argomento della sezione>
 {section_topic}
-</Section topic>
+</Argomento della sezione>
 
-<Existing section content (if populated)>
+<Contenuto della sezione esistente (se popolato)>
 {section_content}
-</Existing section content>
+</Contenuto della sezione esistente (se popolato)>
 
-<Source material>
+<Materiale da fonti>
 {context}
-</Source material>
+</Materiale da fonti>
 """
 
-section_grader_instructions = """Esamina una sezione del rapporto relativa all'argomento specificato:
+section_grader_instructions = """Esamina una sezione del report relativa all'argomento specificato:
 
-<Report topic>
+<Argomento del report>
 {topic}
-</Report topic>
+</Argomento del report>
 
-<section topic>
+<Argomento della sezione>
 {section_topic}
-</section topic>
+</Argomento della sezione>
 
-<section content>
+<Contenuto della sezione>
 {section}
-</section content>
+</Contenuto della sezione>
 
 <task>
-Valuta con attenzione e rigore se il contenuto della sezione  tratta in modo completo e pertinente l'argomento della sezione.
+Valuta con attenzione e rigore se il contenuto della sezione tratta in modo completo e pertinente l'argomento della sezione.
 
 Se il contenuto della sezione non affronta in modo completo e pertinente l'argomento, genera {number_of_follow_up_queries} query di ricerca di approfondimento per raccogliere le informazioni mancanti.
 </task>
@@ -189,28 +190,28 @@ La risposta deve essere in formato JSON valido secondo questo schema:
 </format>
 """
 
-final_section_writer_instructions="""Sei un esperto scrittore tecnico che crea una sezione che sintetizza le informazioni dal resto del rapporto.
+final_section_writer_instructions="""Sei un esperto scrittore tecnico che crea una sezione che sintetizza le informazioni dal resto del report.
 
-<Argomento del rapporto>
+<Argomento del report>
 {topic}
-</Argomento del rapporto>
+</Argomento del report>
 
-<Nome della sezione>
+<Nome della sezione da scrivere>
 {section_name}
-</Nome della sezione>
+</Nome della sezione da scrivere>
 
 <Argomento della sezione> 
 {section_topic}
 </Argomento della sezione>
 
-<Contenuto disponibile del rapporto>
+<Contenuto disponibile del report>
 {context}
-</Contenuto disponibile del rapporto>
+</Contenuto disponibile del report>
 
 <Task>
 1. Approccio specifico per sezione:
 
-Per l'Introduzione:
+Se devi scrivere la sezione di Introduzione:
 - Usa # per il titolo del rapporto (formato Markdown)
 - Limite di 50-100 parole
 - Scrivi in linguaggio semplice e chiaro
@@ -219,7 +220,7 @@ Per l'Introduzione:
 - NON includere elementi strutturali (niente elenchi o tabelle)
 - Sezione fonti non necessaria
 
-Per la Conclusione/Riassunto:
+Se devi scrivere la sezione di Conclusione/Riassunto:
 - Usa ## per il titolo della sezione (formato Markdown)
 - Limite di 100-150 parole
 - Per rapporti comparativi:

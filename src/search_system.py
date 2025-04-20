@@ -110,8 +110,11 @@ class SearchSystem:
             session = requests.Session()
             session.verify = False
             session.mount("https://", SSLIgnoreAdapter())
-            head_resp = session.head(url, allow_redirects=True)
-            content_type = head_resp.headers.get("Content-Type", "")
+            try:
+                head_resp = session.head(url, allow_redirects=True)
+                content_type = head_resp.headers.get("Content-Type", "")
+            except:
+                content_type = ""
 
             if (url.lower().endswith(".pdf") or "application/pdf" in content_type):
                 scraper = cloudscraper.create_scraper()  # crea un sessione che esegue JS-challenge

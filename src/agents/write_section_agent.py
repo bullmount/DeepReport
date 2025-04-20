@@ -74,5 +74,3 @@ class WriteSectionAgent:
                 update={"search_queries": feedback.follow_up_queries, "section": section},
                 goto=SearchWebAgent.Name
             )
-
-        return {"completed_sections": [section]}

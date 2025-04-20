@@ -22,7 +22,7 @@ Requires Research:
 {section.ricerca}
 
 Content:
-{section.contenuto if section.contenuto else '[Not yet written]'}
+{section.contenuto if section.contenuto else '[Non ancora scritto]'}
 
 """
     return formatted_str

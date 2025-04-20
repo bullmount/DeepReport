@@ -18,8 +18,19 @@ class GatherCompletedSections():
     def invoke(self, state: DeepReportState, config: RunnableConfig) -> Dict[str, any]:
         completed_sections = state.completed_sections
 
+        # todo: verifica questa aggiunta ---------------------------
+        completed_sections_per_nome = {s.nome: s.contenuto for s in completed_sections}
+        completed_sections = []
+        for section in state.sections:
+            if not section.ricerca:
+                section.contenuto = "[sezione ancora non scritta]"
+            else:
+                section.contenuto = completed_sections_per_nome[section.nome]
+            completed_sections.append(section)
+        # -------------------------------------------------
+
         # todo: remove -------------------
-        sections = Sections(sezioni=state.completed_sections)
+        sections = Sections(sezioni=completed_sections)
         output_path = Path("completed_sections.json")
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(sections.model_dump_json(indent=4))

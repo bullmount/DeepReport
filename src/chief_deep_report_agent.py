@@ -95,13 +95,13 @@ class ChiefDeepReportAgent:
 
         while True:
             for event in chain.stream(current_input, self._config, stream_mode="updates"):
+                print(f"EVENT: {event}")  # todo: remove
                 if '__interrupt__' in event:
                     interrupt_value = event['__interrupt__'][0].value
                     if '__interrupt__' in event:
                         interrupt_value = event['__interrupt__'][0].value
                         human_response = "si"  # input(interrupt_value['question'])
                         current_input = Command(resume=human_response)
-                print(f"EVENT: {event}")  # todo: remove
             if chain.get_state(self._config).next == ():
                 break
 
