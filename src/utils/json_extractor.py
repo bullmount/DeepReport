@@ -3,6 +3,7 @@ from typing import Type, TypeVar, Optional, Union, Dict, Any, List
 from pydantic import BaseModel
 import re
 import json
+import ast
 
 T = TypeVar('T', bound=BaseModel)
 
@@ -13,6 +14,17 @@ def strip_thinking_tokens(text: str) -> str:
         end = text.find("</think>") + len("</think>")
         text = text[:start] + text[end:]
     return text
+
+
+def _correggi_json(str_json: str) -> str:
+    try:
+        struttura = ast.literal_eval(str_json)
+        return json.dumps(struttura, indent=2, ensure_ascii=False)
+    except:
+        pass
+    json.loads(str_json)
+    return str_json
+
 
 def parse_model(model_class: Type[T], json_string: str) -> T:
     json_string = strip_thinking_tokens(json_string)
@@ -34,7 +46,7 @@ def _extract_valid_json(text: str, max_attempts: int = 5) -> Optional[str]:
 
     # Prova con il parsing diretto (potrebbe funzionare se il testo è già un JSON valido)
     try:
-        json.loads(cleaned_text)
+        cleaned_text = _correggi_json(cleaned_text)
         return cleaned_text
     except json.JSONDecodeError:
         pass
@@ -73,7 +85,7 @@ def _extract_with_regex(text: str) -> Optional[str]:
         matches = re.findall(pattern, text)
         for potential_json in matches:
             try:
-                json.loads(potential_json)
+                potential_json = _correggi_json(potential_json)
                 return potential_json
             except json.JSONDecodeError:
                 continue
@@ -119,7 +131,7 @@ def _extract_with_balanced_parser(text: str) -> Optional[str]:
                     if not stack:  # Abbiamo trovato una struttura JSON completa
                         potential_json = text[start_index:start_index + i + 1]
                         try:
-                            json.loads(potential_json)
+                            potential_json = _correggi_json(potential_json)
                             candidates.append((start_index, potential_json))
                         except json.JSONDecodeError:
                             pass
@@ -132,7 +144,7 @@ def _extract_with_balanced_parser(text: str) -> Optional[str]:
     return None
 
 
-def _extract_with_markdown_code_blocks(text: str) -> Optional[Union[Dict[str, Any], List[Any]]]:
+def _extract_with_markdown_code_blocks(text: str) -> str:
     """Cerca JSON in blocchi di codice markdown."""
     # Cerca JSON in blocchi di codice markdown
     code_block_patterns = [
@@ -146,7 +158,7 @@ def _extract_with_markdown_code_blocks(text: str) -> Optional[Union[Dict[str, An
             code_content = code_content.strip()
             try:
                 if code_content.startswith('{') or code_content.startswith('['):
-                    json.loads(code_content)
+                    code_content = _correggi_json(code_content)
                     return code_content
             except json.JSONDecodeError:
                 continue
@@ -172,13 +184,13 @@ def _extract_with_line_based_approach(text: str) -> Optional[str]:
                     # Potenziale blocco JSON trovato
                     potential_json = '\n'.join(lines[i:j + 1])
                     try:
-                        json.loads(potential_json)
+                        potential_json = _correggi_json(potential_json)
                         return potential_json
                     except json.JSONDecodeError:
                         # Prova a rimuovere commenti o testo in eccesso
                         cleaned = re.sub(r'//.*$|/\*[\s\S]*?\*/', '', potential_json, flags=re.MULTILINE)
                         try:
-                            json.loads(cleaned)
+                            cleaned = _correggi_json(cleaned)
                             return cleaned
                         except json.JSONDecodeError:
                             continue
@@ -191,10 +203,11 @@ def _extract_with_fuzzy_matching(text: str) -> Optional[str]:
     Approccio fuzzy per JSON malformati: cerca di correggere errori comuni
     come virgole finali, virgolette non corrispondenti, ecc.
     """
-    # Cerca parti che sembrano JSON
     json_like_patterns = [
-        r'(\{[\s\S]*?\})',
-        r'(\[[\s\S]*?\])'
+        # Oggetti JSON
+        r'\{(?:[^{}]|(?:\{(?:[^{}]|(?:\{[^{}]*\}))*\}))*\}',
+        # Array JSON
+        r'\[(?:[^\[\]]|(?:\[(?:[^\[\]]|(?:\[[^\[\]]*\]))*\]))*\]'
     ]
 
     for pattern in json_like_patterns:

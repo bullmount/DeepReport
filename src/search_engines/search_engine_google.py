@@ -5,7 +5,9 @@ import time
 from googlesearch import search
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 class GoogleSearchEngine(BaseSearchEngine):
     _last_search_time: ClassVar[float] = 0.0
@@ -25,12 +27,13 @@ class GoogleSearchEngine(BaseSearchEngine):
 
         cls._last_search_time = time.time()
 
-    def search(self, query, max_results: Optional[int] = 10, site: str = None) -> List[SearchEngResult]:
+    def search(self, query, max_results: Optional[int] = 10, sites: List[str] = None) -> List[SearchEngResult]:
         # Applica il rate limiting a livello di classe
         self._ensure_delay()
 
-        if site:
-            query = query + f" site:{site}"
+        if sites:
+            query_con_dominio = " OR ".join([f"site:{dominio}" for dominio in sites])
+            query = query + " " + query_con_dominio
 
         search_results = list(search(query,
                                      num_results=max_results,
@@ -53,4 +56,3 @@ class GoogleSearchEngine(BaseSearchEngine):
                                 full_content=None, num_source=None, score=None, search_engine=self.name))
 
         return results
-

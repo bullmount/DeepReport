@@ -5,18 +5,18 @@ from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage, SystemMessage
 from configuration import Configuration
-from deep_report_state import DeepReportState, Queries, Sections
+from deep_report_state import DeepReportState, Queries, Sections, SearchQuery
 from prompts import report_planner_query_writer_instructions, report_planner_instructions
 from search_system import SearchSystem
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
-from utils.utils import get_config_value
+from utils.utils import get_config_value, get_current_date
 from langchain.chat_models import init_chat_model
 from pathlib import Path
 
 
-class ReportPlannerAgent():
+class ReportPlannerAgent:
     Name = "generate_report_plan"
 
     def __init__(self, ):
@@ -31,11 +31,11 @@ class ReportPlannerAgent():
         feedback = state.feedback_on_report_plan
 
         # todo: remove -------------------------------------
-        file_path = Path("sections.json")
-        if not feedback and file_path.exists():
-            data = file_path.read_text(encoding="utf-8")
-            sections_loaded = Sections.model_validate_json(data)
-            return {"sections": sections_loaded.sezioni}
+        # file_path = Path("sections.json")
+        # if not feedback and file_path.exists():
+        #     data = file_path.read_text(encoding="utf-8")
+        #     sections_loaded = Sections.model_validate_json(data)
+        #     return {"sections": sections_loaded.sezioni}
         # --------------------------------------------------
 
         configurable = Configuration.from_runnable_config(config)
@@ -49,7 +49,9 @@ class ReportPlannerAgent():
         writer_model_name = get_config_value(configurable.writer_model)
         structured_llm = llm_provide(writer_model_name, writer_provider, max_tokens=3000)
 
+        current_date = get_current_date()
         system_instructions_query = report_planner_query_writer_instructions.format(topic=topic,
+                                                                                    current_date=current_date,
                                                                                     json_format=Queries.model_json_schema(),
                                                                                     report_organization=report_structure,
                                                                                     number_of_queries=number_of_queries)
@@ -59,7 +61,8 @@ class ReportPlannerAgent():
                                              content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")])
         queries: Queries = parse_model(Queries, results.content)
 
-        query_list = [query.search_query for query in queries.queries]
+        query_list = [state.topic]
+        query_list.extend([query.search_query for query in queries.queries])
 
         # Search the web with parameters
         search_sys = SearchSystem(configurable.search_api)

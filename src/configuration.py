@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from dataclasses import dataclass, fields
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, List
 
 from langchain_core.runnables import RunnableConfig
 from dataclasses import dataclass
@@ -10,12 +10,12 @@ from dataclasses import dataclass
 DEFAULT_REPORT_STRUCTURE = """Usa questa struttura per creare un report sull'argomento fornito dall'utente:
 
 1. Introduzione (nessuna ricerca necessaria)
-   - Breve panoramica dell'area tematica
+   - Breve panoramica dell'area tematica che introduce i temi trattai nelle sezioni successive
 
 2. Sezioni principali:
-   - Ogni sezione deve concentrarsi su un sotto-argomento relativo al tema fornito
+   - Ogni sezione deve concentrarsi su un sotto-argomento relativo al tema fornito, e deve essere approfondita con ricerche sul web.
 
-3. Conclusione
+3. Conclusione  (nessuna ricerca necessaria)
    - Inserisci un solo elemento strutturale (una lista oppure una tabella) che sintetizzi le sezioni principali
    - Fornisci un riassunto conciso del report"""
 
@@ -39,8 +39,9 @@ class Configuration:
     planner_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-7-sonnet-latest
     writer_provider: str = "openrouter" # Defaults to Anthropic as provider
     writer_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-5-sonnet-latest
-    search_api: SearchAPI = SearchAPI.DUCKDUCKGO # Default to GOOGLE
+    search_api: SearchAPI = SearchAPI.GOOGLESEARCH # Default to GOOGLE
     search_api_config: Optional[Dict[str, Any]] = None
+    sites_search_restriction:Optional[List[str]] = None
 
     @classmethod
     def from_runnable_config(

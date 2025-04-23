@@ -80,6 +80,7 @@ class SectionState():
     source_str: str = field(default=None)
     report_sections_from_research: str = field(default=None)
     completed_sections: list[Section] = field(default=None)
+    web_research_results: Annotated[list, operator.add] = field(default_factory=list)
 
 
 @dataclass(kw_only=True)

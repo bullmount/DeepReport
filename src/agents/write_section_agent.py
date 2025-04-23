@@ -66,7 +66,13 @@ class WriteSectionAgent:
 
         feedback: Feedback = parse_model(Feedback, results.content)
 
-        if feedback.grade == "pass" or state.search_iterations >= configurable.max_search_depth:
+        # almeno una seconda ricerca viene sempre effettuata
+        if feedback.grade == "pass" and state.search_iterations <= 1:
+            return Command(
+                update={"search_queries": state.search_queries, "section": section},
+                goto=SearchWebAgent.Name
+            )
+        elif feedback.grade == "pass" or state.search_iterations >= configurable.max_search_depth:
             return Command(
                 update={"completed_sections": [section]}, goto=END)
         else:

@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from typing import Dict, Literal
 from langchain_core.runnables import RunnableConfig
+
+from agents.build_section_with_web_research import BuildSectionWithWebResearch
 from agents.gather_completed_sections_agent import GatherCompletedSections
 from deep_report_state import DeepReportState, Queries, Sections, SectionState
 from langgraph.types import interrupt, Command
@@ -43,12 +45,12 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
         feedback = interrupt({"question": interrupt_message})
 
         # todo: remove -------------------------------
-        file_path = Path("completed_sections.json")
-        if file_path.exists():
-            data = file_path.read_text(encoding="utf-8")
-            sections_loaded = Sections.model_validate_json(data)
-            return Command(update={"completed_sections": sections_loaded.sezioni},
-                           goto=GatherCompletedSections.Name)
+        # file_path = Path("completed_sections.json")
+        # if file_path.exists():
+        #     data = file_path.read_text(encoding="utf-8")
+        #     sections_loaded = Sections.model_validate_json(data)
+        #     return Command(update={"completed_sections": sections_loaded.sezioni},
+        #                    goto=GatherCompletedSections.Name)
         # --------------------------------------
 
         if isinstance(feedback, str):
@@ -61,8 +63,8 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
                                update={})
             else:
                 return Command(goto=[
-                    Send("build_section_with_web_research",
-                         SectionState(topic=topic, section=s, search_iterations=0)
+                    Send(BuildSectionWithWebResearch.Name,
+                         SectionState(topic=topic, section=s, search_iterations=0, web_research_results=[])
                          )
                     for s in sections if s.ricerca])
         elif isinstance(feedback, str):

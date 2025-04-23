@@ -1,5 +1,11 @@
 from deep_report_state import Section
+from datetime import datetime
+import locale
 
+def get_current_date():
+    locale.setlocale(locale.LC_TIME, 'it_IT.UTF-8')
+    # return datetime.now().strftime("%B %d, %Y")
+    return datetime.now().strftime("%d %B %Y")
 
 def get_config_value(value):
     """

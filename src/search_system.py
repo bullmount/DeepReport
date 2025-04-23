@@ -48,7 +48,7 @@ class SearchSystem:
                        max_results_per_query: int,
                        include_raw_content: bool = False,
                        exclude_sources: Optional[List[SearchEngResult]] = None,
-                       site: Optional[str] = None,
+                       sites: Optional[List[str]] = None,
                        additional_params=None) -> List[SearchEngResult]:
 
         def process_result(result):
@@ -69,13 +69,13 @@ class SearchSystem:
         for query in query_list:
             all_query_results: List[SearchEngResult] = search_engine.search(query,
                                                                             max_results=max_results_per_query,
-                                                                            site=site)
+                                                                            sites=sites)
             filtered_results = [r for r in all_query_results
                                 if not any(exclude_result['url'] == r['url'] for exclude_result in exclude_sources)]
 
             for r in filtered_results:
                 r['query'] = query
-                r['search_engine'] = self._search_api
+                r['search_engine'] = self._search_api.value
                 r['full_content'] = ""
 
             if include_raw_content:
@@ -136,8 +136,9 @@ class SearchSystem:
                     java_script_enabled=True,
                 )
                 page = context.new_page()
-                page.goto(url, wait_until="load", timeout=60 * 1000)  # 60 sec.
-                html = page.content()
+                page.goto(url, wait_until="networkidle", timeout=60 * 1000)  # 60 sec.
+                # html = page.content()
+                html = page.inner_html("body")
                 doc = Document(html)
                 contenuto_html = doc.summary()
                 return markdownify(contenuto_html)

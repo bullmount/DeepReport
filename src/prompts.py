@@ -1,4 +1,8 @@
-report_planner_query_writer_instructions="""Stai svolgendo ricerche per un report.
+report_planner_query_writer_instructions="""Stai svolgendo ricerche per redigere un report con informazioni aggiornate.
+
+<Data attuale>
+{current_date}
+</Data attuale>
 
 <Argomento del report>
 {topic}
@@ -25,7 +29,7 @@ La risposta deve essere in formato JSON secondo questo schema:
 </Format>
 """
 
-report_planner_instructions="""Voglio un piano per un report che sia conciso e mirato.
+report_planner_instructions="""Voglio un piano per redigere un report che sia conciso e mirato.
 
 <Report topic>
 L'argomento del report è:
@@ -79,7 +83,11 @@ La risposta deve essere in formato JSON secondo questo schema:
 </Format>
 """
 
-query_writer_instructions="""Sei un redattore tecnico esperto che crea query di ricerca web mirate per raccogliere informazioni esaustive utili alla stesura di una sezione di un report tecnico.
+query_writer_instructions="""Sei un redattore tecnico esperto che crea query di ricerca web mirate per raccogliere informazioni esaustive e aggiornate utili alla stesura di una sezione di un report tecnico.
+
+<Data attuale>
+{current_date}
+</Data attuale>
 
 <Argomento del report>
 {topic}  
@@ -90,7 +98,7 @@ query_writer_instructions="""Sei un redattore tecnico esperto che crea query di 
 </Argomento della sezione>
 
 <Task>
-Il tuo obiettivo è generare {number_of_queries} query di ricerca che aiutino a raccogliere informazioni esaustive sull’argomento della sezione.
+Il tuo obiettivo è generare {number_of_queries} query di ricerca che aiutino a raccogliere informazioni aggiornate ed esaustive sull’argomento della sezione.
 
 Le query devono:
 

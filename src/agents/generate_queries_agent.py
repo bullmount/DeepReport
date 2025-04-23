@@ -8,7 +8,7 @@ from deep_report_state import SectionState, Queries
 from prompts import query_writer_instructions
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
-from utils.utils import get_config_value
+from utils.utils import get_config_value, get_current_date
 
 
 class GenerateQueriesAgent:
@@ -34,6 +34,7 @@ class GenerateQueriesAgent:
         structured_llm = llm_provide(writer_model_name, writer_provider)
 
         system_instructions = query_writer_instructions.format(topic=topic,
+                                                               current_date = get_current_date(),
                                                                section_topic=section.descrizione,
                                                                number_of_queries=number_of_queries,
                                                                json_format=Queries.model_json_schema())
