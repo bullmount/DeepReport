@@ -25,6 +25,10 @@ def _correggi_json(str_json: str) -> str:
     json.loads(str_json)
     return str_json
 
+def extract_json(text: str) -> Optional[str]:
+    json_string = strip_thinking_tokens(text)
+    json_string = _extract_valid_json(json_string) # json_string.replace("```json", "").replace("```","")
+    return json_string
 
 def parse_model(model_class: Type[T], json_string: str) -> T:
     json_string = strip_thinking_tokens(json_string)

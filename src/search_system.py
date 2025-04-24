@@ -17,6 +17,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+from sentence_transformers import SentenceTransformer, util  # Importa SentenceTransformer
 
 import logging
 
@@ -27,6 +28,7 @@ from search_engines.search_engine_google import GoogleSearchEngine
 import ssl
 from requests.adapters import HTTPAdapter
 import threading
+import torch
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,10 @@ class SSLIgnoreAdapter(HTTPAdapter):
 
 
 class SearchSystem:
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    _embedding_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
+    _embedding_model.to(device=device)
+
     def __init__(self, search_api: SearchAPI):
         self._search_api = search_api
 
@@ -68,6 +74,8 @@ class SearchSystem:
         if num_exclusions > 0:
             delta_per_query = math.ceil(num_exclusions / num_queries)
             max_results_per_query = max_results_per_query + delta_per_query
+
+        #todo: prima prelevare tutti i risultati, e fare fetch raw senza ripetere url già identificati
 
         for query in query_list:
             all_query_results: List[SearchEngResult] = search_engine.search(query,
@@ -108,7 +116,7 @@ class SearchSystem:
             raise ValueError("Invalid search engine name")
 
     @staticmethod
-    def _fetch_pdf(url:str) -> bytes:
+    def _fetch_pdf(url: str) -> bytes:
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
@@ -127,7 +135,6 @@ class SearchSystem:
                 browser.close()
                 if temp_file_path and os.path.exists(temp_file_path):
                     os.remove(temp_file_path)
-
 
     @staticmethod
     def _fetch_raw_content(url: str) -> Optional[str]:
@@ -181,7 +188,17 @@ class SearchSystem:
         df = pd.DataFrame(results)
         df['desc_length'] = df['snippet'].str.len()
 
-        numeric_cols = ['position', 'desc_length']
+        # 1. Calcola gli embedding per snippet e query
+        snippet_embeddings = SearchSystem._embedding_model.encode(df['snippet'].tolist())
+        query_embeddings = SearchSystem._embedding_model.encode(df['query'].tolist())
+
+        # 2. Calcola la similarità coseno tra ogni snippet e la sua query corrispondente
+        df['semantic_similarity'] = [util.pytorch_cos_sim(s_emb, q_emb).item()
+                                     for s_emb, q_emb in zip(snippet_embeddings, query_embeddings)]
+
+        numeric_cols = ['position', 'desc_length',
+                        # 'semantic_similarity'
+                        ]
         if include_raw_content:
             df['page_length'] = df['full_content'].str.len()
             numeric_cols.append('page_length')
@@ -205,8 +222,11 @@ class SearchSystem:
         # Questo crea una curva a campana con picco a 0.5
         df_scaled['desc_length_score'] = 1 - 2 * np.abs(df_scaled['desc_length'] - 0.5)
 
+        # 3.3 Punteggio per similarità semantica
+        df_scaled['semantic_score'] = df_scaled['semantic_similarity']
+
         if include_raw_content:
-            # 3.3 Calcola punteggio per lunghezza pagina
+            # 3.4 Calcola punteggio per lunghezza pagina
             # Assumiamo che pagine più lunghe abbiano più contenuto, ma non troppo lunghe
             df_scaled['page_length_score'] = np.where(
                 df_scaled['page_length'] <= 0.7,
@@ -217,16 +237,18 @@ class SearchSystem:
             # 4. Calcolo dello score composito con pesi
             # Ora includiamo la frequenza dell'URL tra le query
             df_scaled['final_score'] = (
-                    0.4 * df_scaled['position_score'] +  # La posizione originale è importante
-                    0.2 * df_scaled['page_length_score'] +  # La lunghezza della pagina è abbastanza importante
-                    0.15 * df_scaled['desc_length_score'] +  # La lunghezza della descrizione è meno importante
-                    0.25 * df_scaled['url_frequency_norm']  # Premiamo i risultati che appaiono in più query
+                    0.3 * df_scaled['position_score'] +  # Leggermente meno peso alla posizione
+                    0.2 * df_scaled['page_length_score'] +  # La lunghezza della pagina rimane importante
+                    0.1 * df_scaled['desc_length_score'] +  # Meno peso alla lunghezza della descrizione
+                    0.3 * df_scaled['semantic_score'] +  # Importante peso alla similarità semantica
+                    0.1 * df_scaled['url_frequency_norm']  # Leggermente meno peso alla frequenza dell'URL
             )
         else:
             df_scaled['final_score'] = (
-                    0.5 * df_scaled['position_score'] +  # La posizione originale diventa più importante
+                    0.4 * df_scaled['position_score'] +  # La posizione originale diventa più importante
                     0.2 * df_scaled['desc_length_score'] +  # La lunghezza della descrizione resta importante
-                    0.3 * df_scaled['url_frequency_norm']  # Premiamo di più i risultati che appaiono in più query
+                    0.3 * df_scaled['semantic_score'] +  # Importante peso alla similarità semantica
+                    0.1 * df_scaled['url_frequency_norm']  # Premiamo di più i risultati che appaiono in più query
             )
 
         unique_urls = []
@@ -246,7 +268,7 @@ class SearchSystem:
         final_result_df = df.loc[final_indices].copy()
         final_result_df['score'] = df_scaled.loc[final_indices, 'final_score']
         final_result_df['frequency'] = df.loc[final_indices, 'url_frequency']
-
+        final_result_df['semantic_similarity'] = df_scaled.loc[final_indices, 'semantic_similarity']
         search_results: List[SearchEngResult] = []
         for idx, row in final_result_df.iterrows():
             # Crea un dizionario con tutti i valori
