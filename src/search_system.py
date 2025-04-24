@@ -1,10 +1,11 @@
 import os
 import tempfile
+import time
 
 import cloudscraper
 import requests
 import math
-
+import random
 import fitz
 import pymupdf4llm
 
@@ -30,6 +31,9 @@ from requests.adapters import HTTPAdapter
 import threading
 import torch
 
+from threading import Lock
+from typing import ClassVar, Dict
+
 logger = logging.getLogger(__name__)
 
 lock = threading.Lock()
@@ -45,6 +49,9 @@ class SSLIgnoreAdapter(HTTPAdapter):
 
 
 class SearchSystem:
+    _shared_cache: ClassVar[Dict[str, str]] = {}
+    _cache_lock: ClassVar[Lock] = Lock()
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     _embedding_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
     _embedding_model.to(device=device)
@@ -61,7 +68,21 @@ class SearchSystem:
                        additional_params=None) -> List[SearchEngResult]:
 
         def process_result(result):
-            result['full_content'] = self._fetch_raw_content(result['url'])
+            url = result['url']
+
+            with SearchSystem._cache_lock:
+                cached_content = SearchSystem._shared_cache.get(url)
+                if cached_content is not None:
+                    # Cache hit for URL
+                    result['full_content'] = cached_content
+                    return result
+
+            content = SearchSystem._fetch_raw_content(result['url'])
+
+            with SearchSystem._cache_lock:
+                SearchSystem._shared_cache[url] = content
+                result['full_content'] = content
+
             return result
 
         search_engine: BaseSearchEngine = self._create_search_engine()
@@ -75,8 +96,6 @@ class SearchSystem:
             delta_per_query = math.ceil(num_exclusions / num_queries)
             max_results_per_query = max_results_per_query + delta_per_query
 
-        #todo: prima prelevare tutti i risultati, e fare fetch raw senza ripetere url già identificati
-
         for query in query_list:
             all_query_results: List[SearchEngResult] = search_engine.search(query,
                                                                             max_results=max_results_per_query,
@@ -88,16 +107,22 @@ class SearchSystem:
                 r['query'] = query
                 r['search_engine'] = self._search_api.value
                 r['full_content'] = ""
+            all_results.extend(filtered_results)
 
-            if include_raw_content:
-                with ThreadPoolExecutor(max_workers=10) as executor:
-                    futures = [executor.submit(process_result, r) for r in filtered_results]
+        if include_raw_content:
+            url_set = set()
+            for r in all_results:
+                url_set.add(r['url'])
+
+            with ThreadPoolExecutor(max_workers=10) as executor:
+                futures = [executor.submit(process_result, {"url": r}) for r in url_set]
                 processed_results = [future.result() for future in as_completed(futures)]
-                processed_results = [r for r in processed_results
-                                     if r['full_content'] is not None and len(r['full_content'].split()) > 30]
-                all_results.extend(processed_results)
-            else:
-                all_results.extend(filtered_results)
+            processed_results = {r['url']: r['full_content'] for r in processed_results}
+            for r in all_results:
+                r['full_content'] = processed_results[r['url']]
+
+            all_results = [r for r in all_results if
+                           r['full_content'] is not None and len(r['full_content'].split()) > 80]
 
         if len(all_results) <= 1:
             return all_results
@@ -174,6 +199,16 @@ class SearchSystem:
                 )
                 page = context.new_page()
                 page.goto(url, wait_until="networkidle", timeout=60 * 1000)  # 60 sec.
+                page.wait_for_load_state('networkidle')
+
+                # Sequenza di azioni che simula comportamento umano nella navigazione:
+                # pause casuali + movimento mouse + scroll naturale rendono più difficile il rilevamento come bot
+                # da parte dei sistemi anti-automazione
+                time.sleep(random.uniform(0.5, 1.5))
+                page.mouse.move(300, 400)
+                time.sleep(random.uniform(0.5, 1.5))
+                page.mouse.wheel(0, 500)
+
                 # html = page.content()
                 html = page.inner_html("body")
                 doc = Document(html)
