@@ -7,7 +7,7 @@ from custom_llm.my_chat_model import MyChatModel
 
 
 def llm_provide(model_name: str, model_provider: str,
-                is_json_format: bool = False, max_tokens: int = 4000) -> BaseChatModel:
+                is_json_format: bool = False, max_tokens: int = 12000) -> BaseChatModel:
     if model_provider == "openrouter":
         openai_api_key = os.getenv("OPENROUTER_API_KEY")
         llm = ChatOpenAI(api_key=openai_api_key,

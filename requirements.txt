@@ -1,5 +1,6 @@
 cloudscraper
 demjson3
+docling
 dotenv
 duckduckgo_search
 googlesearch-python
@@ -22,5 +23,6 @@ readability-lxml
 requests
 scikit-learn
 selenium
+sentence_transformers
 urllib3
 webdriver-manager

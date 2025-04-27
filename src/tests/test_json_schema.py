@@ -2,6 +2,9 @@ from pydantic import BaseModel, Field
 from typing import List
 import json
 
+from deep_report_state import SectionReview
+
+
 class SearchQuery(BaseModel):
     search_query: str = Field(None, description="Query for web search.")
 
@@ -10,14 +13,24 @@ class Queries(BaseModel):
         description="List of search queries.",
     )
 
-# Verifica quale versione di Pydantic stai usando
-try:
-    # Pydantic v2
-    json_schema = Queries.model_json_schema()
-except AttributeError:
-    # Pydantic v1
-    json_schema = Queries.schema()
+def test_json_schema_1():
+    # Verifica quale versione di Pydantic stai usando
+    try:
+        # Pydantic v2
+        json_schema = Queries.model_json_schema()
+    except AttributeError:
+        # Pydantic v1
+        json_schema = Queries.schema()
 
-# Formatta il JSON in modo leggibile
-formatted_schema = json.dumps(json_schema, indent=2)
-print(formatted_schema)
+    # Formatta il JSON in modo leggibile
+    formatted_schema = json.dumps(json_schema, indent=2)
+    print(formatted_schema)
+
+
+def test_json_schema_2():
+    # Verifica quale versione di Pydantic stai usando
+    json_schema = SectionReview.model_json_schema()
+
+    # Formatta il JSON in modo leggibile
+    formatted_schema = json.dumps(json_schema, indent=2)
+    print(formatted_schema)

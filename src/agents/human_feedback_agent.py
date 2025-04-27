@@ -64,7 +64,8 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
             else:
                 return Command(goto=[
                     Send(BuildSectionWithWebResearch.Name,
-                         SectionState(topic=topic, section=s, search_iterations=0, web_research_results=[])
+                         SectionState(topic=topic, section=s,all_sections=state.sections,
+                                      search_iterations=0, web_research_results=[])
                          )
                     for s in sections if s.ricerca])
         elif isinstance(feedback, str):

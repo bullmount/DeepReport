@@ -23,6 +23,8 @@ class WriteFinalSectionsAgent:
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         configurable = Configuration.from_runnable_config(config)
 
+        #TODO: DISTINGUERE PER TIPO SEZIONE
+
         topic = state.topic
         section = state.section
         completed_report_sections = state.report_sections_from_research

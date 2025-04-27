@@ -1,4 +1,6 @@
 import time
+from typing import List
+
 from langgraph.graph import END, StateGraph, START
 from langchain_core.runnables import RunnableConfig
 from agents import ReportPlannerAgent
@@ -18,18 +20,33 @@ from langgraph.types import Command, Send
 
 
 class ChiefDeepReportAgent:
-    def __init__(self):
+    def __init__(self, sites_search_restriction: List[str] = None, ):
         task_id = str(int(time.time()))
         config: RunnableConfig = RunnableConfig(
 
             configurable={
                 "thread_id": task_id,
+                "max_results_per_query":2,
                 #         "search_api": "google",
                 #         # "site_search_restriction": "dominio",
                 #         "fetch_full_page": True,
                 #
-                #         "llm_provider": "openrouter",
-                #         # # "model_name": "google/gemma-3-27b-it:free",
+
+                "planner_provider":"my_provider",
+                "planner_model":"gpt-4o-mini",
+                "writer_provider":"my_provider",
+                "writer_model":"gpt-4o-mini",
+
+                # "planner_provider": "openrouter",
+                # # "planner_model": "google/gemini-2.0-flash-exp:free",
+                # # "planner_model":"google/gemma-3-27b-it:free"
+                # "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
+
+                # "writer_provider": "openrouter",
+                # # "writer_model": "google/gemini-2.0-flash-exp:free",
+                # # "writer_model":"google/gemma-3-27b-it:free"
+                # "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
+
                 #         "model_name": "mistralai/mistral-small-24b-instruct-2501:free",
                 #
                 #         # sistema interno privato ----------
@@ -37,6 +54,7 @@ class ChiefDeepReportAgent:
                 #         # "model_name": "gpt-4o",
                 #         # "model_name": "gpt-4o-mini",
                 #
+                "sites_search_restriction": sites_search_restriction
             }
         )
         self._config = config
@@ -67,6 +85,7 @@ class ChiefDeepReportAgent:
 
         # workflow edges
         workflow.set_entry_point(ReportPlannerAgent.Name)
+        # workflow.add_edge(ReportPlannerAgent.Name, END)  #todo: remove
         workflow.add_edge(ReportPlannerAgent.Name, HumanFeedbackAgent.Name)
         workflow.add_edge(BuildSectionWithWebResearch.Name, GatherCompletedSections.Name)
         workflow.add_conditional_edges(GatherCompletedSections.Name,
@@ -86,7 +105,7 @@ class ChiefDeepReportAgent:
         initial_state = DeepReportState(topic=topic, sections=[],
                                         completed_sections=[])
 
-        chain.get_graph().draw_mermaid_png(output_file_path="chief_deep_report_agent.png")
+        # chain.get_graph().draw_mermaid_png(output_file_path="chief_deep_report_agent.png")
 
         # todo: remove
         # res = chain.invoke(initial_state, config=self._config)

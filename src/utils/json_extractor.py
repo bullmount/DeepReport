@@ -7,6 +7,21 @@ import ast
 
 T = TypeVar('T', bound=BaseModel)
 
+def escape_newlines_in_quotes(s: str) -> str:
+    pattern = re.compile(r'(?<!\\)"((?:[^"\\]|\\.)*?)(?<!\\)"', flags=re.DOTALL)
+
+    def _repl(match: re.Match) -> str:
+        # match.group(1) è il contenuto interno a "…"
+        inner = match.group(1)
+        # eseguo la sostituzione
+        inner_escaped = inner.replace('\n', '\\n')
+        inner_escaped = inner_escaped.replace('\\"', "'")
+        # ricostruisco il blocco con le virgolette
+        return f'"{inner_escaped}"'
+
+    # Applico la sostituzione a tutta la stringa
+    return pattern.sub(_repl, s)
+
 
 def strip_thinking_tokens(text: str) -> str:
     while "<think>" in text and "</think>" in text:
@@ -18,6 +33,7 @@ def strip_thinking_tokens(text: str) -> str:
 
 def _correggi_json(str_json: str) -> str:
     try:
+        str_json = escape_newlines_in_quotes(str_json)
         struttura = ast.literal_eval(str_json)
         return json.dumps(struttura, indent=2, ensure_ascii=False)
     except:
@@ -30,23 +46,28 @@ def extract_json(text: str) -> Optional[str]:
     json_string = _extract_valid_json(json_string) # json_string.replace("```json", "").replace("```","")
     return json_string
 
-def parse_model(model_class: Type[T], json_string: str) -> T:
-    json_string = strip_thinking_tokens(json_string)
+def parse_model(model_class: Type[T], json_string_original: str) -> T:
+    json_string = strip_thinking_tokens(json_string_original)
     json_string = _extract_valid_json(json_string) # json_string.replace("```json", "").replace("```","")
     try:
         # Pydantic v2
         queries_obj = model_class.model_validate_json(json_string)
-    except AttributeError:
+    except :
         # Pydantic v1
-        queries_obj = model_class.parse_raw(json_string)
+        try:
+            queries_obj = model_class.parse_raw(json_string)
+        except:
+            print("Errore di decodifica JSON----------------")
+            print(json_string)
+            print("----------------------------------------")
+            raise #todo: remove
 
     return queries_obj
 
 
 
 def _extract_valid_json(text: str, max_attempts: int = 5) -> Optional[str]:
-    cleaned_text = text.replace('\t', ' ').replace('\r', '')
-    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+    cleaned_text = text.strip()
 
     # Prova con il parsing diretto (potrebbe funzionare se il testo è già un JSON valido)
     try:

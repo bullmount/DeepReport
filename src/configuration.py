@@ -42,6 +42,7 @@ class Configuration:
     search_api: SearchAPI = SearchAPI.GOOGLESEARCH # Default to GOOGLE
     search_api_config: Optional[Dict[str, Any]] = None
     sites_search_restriction:Optional[List[str]] = None
+    max_results_per_query:int = 4
 
     @classmethod
     def from_runnable_config(

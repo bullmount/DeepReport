@@ -23,7 +23,7 @@ class SourcesFormatter():
         for i, source in enumerate(sources, 1):
             formatted_text += f"{'=' * 80}\n"  # Clear section separator
             if numbering:
-                formatted_text += f"[{[source['num_source']]}] Fonte: {source['title']}\n"
+                formatted_text += f"Fonte numero {source['num_source']}: {source['title']}\n"
             else:
                 formatted_text += f"Fonte: {source['title']}\n"
             formatted_text += f"{'-' * 80}\n"  # Subsection separator

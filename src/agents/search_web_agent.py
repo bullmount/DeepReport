@@ -20,23 +20,28 @@ class SearchWebAgent():
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         search_queries = state.search_queries
         prev_web_research_results = sum(state.web_research_results, [])
+        last_num_source = len(prev_web_research_results)
         configurable = Configuration.from_runnable_config(config)
 
         query_list = [query.search_query for query in search_queries]
         search_sys = SearchSystem(configurable.search_api)
-        sources = search_sys.execute_search(query_list, max_filtered_results=4, max_results_per_query=4,
+        sources = search_sys.execute_search(query_list, max_filtered_results=configurable.max_results_per_query,
+                                            max_results_per_query=configurable.max_results_per_query,
                                             include_raw_content=True,
                                             sites=configurable.sites_search_restriction,
                                             exclude_sources=prev_web_research_results)
+        for res in sources:
+            last_num_source += 1
+            res['num_source'] = last_num_source
 
-        sources_formatter = SourcesFormatter()
-        source_str = sources_formatter.format_sources(sources,
-                                                      include_raw_content=True,
-                                                      max_tokens_per_source=3000,
-                                                      numbering=False)
-
+        # todo: remove
+        # sources_formatter = SourcesFormatter()
+        # source_str = sources_formatter.format_sources(sources,
+        #                                               include_raw_content=True,
+        #                                               max_tokens_per_source=3000,
+        #                                               numbering=False)
         return {
-            "source_str": source_str,
             "search_iterations": state.search_iterations + 1,
+            "previous_search_queries": search_queries,
             "web_research_results": [sources]
         }

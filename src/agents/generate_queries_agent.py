@@ -8,7 +8,7 @@ from deep_report_state import SectionState, Queries
 from prompts import query_writer_instructions
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
-from utils.utils import get_config_value, get_current_date
+from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
 
 
 class GenerateQueriesAgent:
@@ -24,6 +24,7 @@ class GenerateQueriesAgent:
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         topic = state.topic
         section = state.section
+        section_number, other_sections = estrai_sezioni_markdown_e_indice_assegnata(state.all_sections, state.section)
 
         configurable = Configuration.from_runnable_config(config)
         number_of_queries = configurable.number_of_queries
@@ -34,12 +35,16 @@ class GenerateQueriesAgent:
         structured_llm = llm_provide(writer_model_name, writer_provider)
 
         system_instructions = query_writer_instructions.format(topic=topic,
-                                                               current_date = get_current_date(),
-                                                               section_topic=section.descrizione,
+                                                               current_date=get_current_date(),
+                                                               section_number=section_number,
+                                                               section_title=section.nome,
+                                                               section_description=section.descrizione,
+                                                               other_sections=other_sections,
                                                                number_of_queries=number_of_queries,
                                                                json_format=Queries.model_json_schema())
         results = structured_llm.invoke([SystemMessage(content=system_instructions),
-                                         HumanMessage(content="Genera query di ricerca sull’argomento fornito.")])
+                                         HumanMessage(
+                                             content=f"Genera query di ricerca per l'argomento della sezione numero {section_number}.")])
         queries: Queries = parse_model(Queries, results.content)
 
         return {"search_queries": queries.queries}
