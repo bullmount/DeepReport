@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from deep_report_state import Section
 from datetime import datetime
@@ -16,13 +16,14 @@ def get_config_value(value):
     return value if isinstance(value, str) else value.value
 
 
-def estrai_sezioni_markdown_e_indice_assegnata(tutte_le_sezioni: List[Section], sezione_assegnata: Section,
-                                               include_assegnata:bool = False) -> Tuple[int, str]:
+def estrai_sezioni_markdown_e_indice_assegnata(tutte_le_sezioni: List[Section],
+                                               sezione_assegnata: Optional[Section] = None,
+                                               include_assegnata: bool = False) -> Tuple[int, str]:
     markdown_lines = []
     indice_assegnata = None
 
     for i, sezione in enumerate(tutte_le_sezioni, start=1):
-        if sezione.nome == sezione_assegnata.nome and sezione.descrizione == sezione_assegnata.descrizione:
+        if sezione_assegnata and sezione.nome == sezione_assegnata.nome and sezione.descrizione == sezione_assegnata.descrizione:
             indice_assegnata = i
             if not include_assegnata:
                 continue

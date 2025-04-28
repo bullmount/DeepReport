@@ -26,16 +26,16 @@ class ChiefDeepReportAgent:
 
             configurable={
                 "thread_id": task_id,
-                "max_results_per_query":2,
+                "max_results_per_query": 2,
                 #         "search_api": "google",
                 #         # "site_search_restriction": "dominio",
                 #         "fetch_full_page": True,
                 #
 
-                "planner_provider":"my_provider",
-                "planner_model":"gpt-4o-mini",
-                "writer_provider":"my_provider",
-                "writer_model":"gpt-4o-mini",
+                "planner_provider": "my_provider",
+                "planner_model": "gpt-4o-mini",
+                "writer_provider": "my_provider",
+                "writer_model": "gpt-4o-mini",
 
                 # "planner_provider": "openrouter",
                 # # "planner_model": "google/gemini-2.0-flash-exp:free",
@@ -85,7 +85,6 @@ class ChiefDeepReportAgent:
 
         # workflow edges
         workflow.set_entry_point(ReportPlannerAgent.Name)
-        # workflow.add_edge(ReportPlannerAgent.Name, END)  #todo: remove
         workflow.add_edge(ReportPlannerAgent.Name, HumanFeedbackAgent.Name)
         workflow.add_edge(BuildSectionWithWebResearch.Name, GatherCompletedSections.Name)
         workflow.add_conditional_edges(GatherCompletedSections.Name,
@@ -118,8 +117,7 @@ class ChiefDeepReportAgent:
                 if '__interrupt__' in event:
                     interrupt_value = event['__interrupt__'][0].value
                     if '__interrupt__' in event:
-                        interrupt_value = event['__interrupt__'][0].value
-                        human_response = "si"  # input(interrupt_value['question'])
+                        human_response = input(interrupt_value['question'])
                         current_input = Command(resume=human_response)
             if chain.get_state(self._config).next == ():
                 break

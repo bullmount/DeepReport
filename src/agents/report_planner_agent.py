@@ -1,18 +1,16 @@
-import os
 from typing import Dict
-
-from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage, SystemMessage
 from configuration import Configuration
-from deep_report_state import DeepReportState, Queries, Sections, SearchQuery
-from prompts import report_planner_query_writer_instructions, report_planner_instructions_initial
+from deep_report_state import DeepReportState, Queries, Sections
+from prompts import report_planner_query_writer_instructions, report_planner_instructions_initial, \
+    report_planner_query_writer_with_feedback_instructions, \
+    report_planner_instructions_with_feedback_and_additional_section
 from search_system import SearchSystem
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
-from utils.utils import get_config_value, get_current_date
-from langchain.chat_models import init_chat_model
+from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
 from pathlib import Path
 
 
@@ -38,14 +36,14 @@ class ReportPlannerAgent:
         sources_formatter = SourcesFormatter()
 
         # todo: remove -------------------------------------
-        file_path_1 = Path("sections.json")
-        file_path_2 = Path("queries.json")
-        if not feedback and file_path_1.exists() and file_path_2.exists():
-            data = file_path_1.read_text(encoding="utf-8")
-            sections_loaded = Sections.model_validate_json(data)
-            data = file_path_2.read_text(encoding="utf-8")
-            queries_loaded = Queries.model_validate_json(data)
-            return {"queries": queries_loaded,"themes": sections_loaded.tematiche, "sections": sections_loaded.sezioni}
+        # file_path_1 = Path("sections.json")
+        # file_path_2 = Path("queries.json")
+        # if not feedback and file_path_1.exists() and file_path_2.exists():
+        #     data = file_path_1.read_text(encoding="utf-8")
+        #     sections_loaded = Sections.model_validate_json(data)
+        #     data = file_path_2.read_text(encoding="utf-8")
+        #     queries_loaded = Queries.model_validate_json(data)
+        #     return {"queries": queries_loaded, "themes": sections_loaded.tematiche, "sections": sections_loaded.sezioni}
         # --------------------------------------------------
 
         if isinstance(report_structure, dict):
@@ -57,11 +55,11 @@ class ReportPlannerAgent:
 
         current_date = get_current_date()
 
-        if feedback is None:   # query per la prima pianificazione
-            sources = search_sys.execute_search([topic], max_filtered_results=8, max_results_per_query=8,
-                                                include_raw_content=False, exclude_sources=[])
-            starting_knowledge = sources_formatter.format_sources(sources, include_raw_content=False,
-                                                          max_tokens_per_source=1000, numbering=False)
+        sources = search_sys.execute_search([topic], max_filtered_results=8, max_results_per_query=8,
+                                            include_raw_content=False, exclude_sources=[])
+        starting_knowledge = sources_formatter.format_sources(sources, include_raw_content=False,
+                                                              max_tokens_per_source=1000, numbering=False)
+        if feedback is None:  # query per la prima pianificazione
             system_instructions_query = report_planner_query_writer_instructions.format(topic=topic,
                                                                                         current_date=current_date,
                                                                                         starting_knowledge=starting_knowledge,
@@ -72,10 +70,21 @@ class ReportPlannerAgent:
                                              HumanMessage(
                                                  content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")])
             queries: Queries = parse_model(Queries, results.content)
-        else:
-            #todo: riusare la starting_knowledge iniziale e con il feedback rigenerare le queries
-            raise NotImplemented
-
+        else:   # query per revisione della pianificazione
+            _, proposed_structure = estrai_sezioni_markdown_e_indice_assegnata(state.sections, None,
+                                                                               include_assegnata=True)
+            system_instructions_query = report_planner_query_writer_with_feedback_instructions.format(topic=topic,
+                                                                                                      current_date=current_date,
+                                                                                                      starting_knowledge=starting_knowledge,
+                                                                                                      proposed_structure=proposed_structure,
+                                                                                                      user_feedback=feedback,
+                                                                                                      number_of_queries=number_of_queries,
+                                                                                                      json_format=Queries.model_json_schema()
+                                                                                                      )
+            results = structured_llm.invoke([SystemMessage(content=system_instructions_query),
+                                             HumanMessage(
+                                                 content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")])
+            queries: Queries = parse_model(Queries, results.content)
 
         query_list = [state.topic]
         query_list.extend([query.search_query for query in queries.queries])
@@ -94,9 +103,8 @@ class ReportPlannerAgent:
         if feedback is None:  # prima pianificazione
             system_instructions_sections = report_planner_instructions_initial.format(topic=topic,
                                                                                       report_organization=report_structure,
-                                                                                      context=source_str, feedback=feedback,
+                                                                                      context=source_str,
                                                                                       json_format=Sections.model_json_schema())
-
 
             planner_message = """Pianifica le sezioni che devono comporre il report.
     La tua risposta deve includere un campo 'sezioni' contenente un elenco di sezioni e un campo 'tematiche' contenente l'elenco delle tematiche importanti sul report.
@@ -106,8 +114,21 @@ class ReportPlannerAgent:
             result_sections = planner_llm.invoke([SystemMessage(content=system_instructions_sections),
                                                   HumanMessage(content=planner_message)])
         else:
-            # todo: generare report_sections tenendo conto del feedback
-            raise NotImplemented("Non ancora implementato")
+            _, proposed_structure = estrai_sezioni_markdown_e_indice_assegnata(state.sections, None,
+                                                                               include_assegnata=True)
+            system_instructions_sections = report_planner_instructions_with_feedback_and_additional_section.format(
+                topic=topic,
+                report_organization=proposed_structure,
+                user_feedback=feedback,
+                context=source_str,
+                json_format=Sections.model_json_schema())
+            planner_message = """Pianifica le sezioni che devono comporre il report.
+                La tua risposta deve includere un campo 'sezioni' contenente un elenco di sezioni e un campo 'tematiche' contenente l'elenco delle tematiche importanti sul report.
+                Ogni sezione deve avere i campi: nome, descrizione, piano, indicatore se richiede ricerca, contenuto e tipo.
+                Orni tematica deve avere i campi: titolo e descrizione."""
+            planner_llm = llm_provide(planner_model, planner_provider, max_tokens=6000)
+            result_sections = planner_llm.invoke([SystemMessage(content=system_instructions_sections),
+                                                  HumanMessage(content=planner_message)])
 
 
         sections: Sections = parse_model(Sections, result_sections.content)
@@ -122,4 +143,4 @@ class ReportPlannerAgent:
             f.write(queries.model_dump_json(indent=4))
         # --------------------
 
-        return {"queries": queries, "themes": sections.tematiche,  "sections": sections.sezioni}
+        return {"queries": queries, "themes": sections.tematiche, "sections": sections.sezioni}

@@ -34,6 +34,9 @@ import torch
 from threading import Lock
 from typing import ClassVar, Dict
 
+from utils.url_fetcher import UrlFetcher
+from utils.url_list_appender import UrlListAppender
+
 logger = logging.getLogger(__name__)
 
 lock = threading.Lock()
@@ -49,8 +52,11 @@ class SSLIgnoreAdapter(HTTPAdapter):
 
 
 class SearchSystem:
-    _shared_cache: ClassVar[Dict[str, str]] = {}
-    _cache_lock: ClassVar[Lock] = Lock()
+    # _shared_cache: ClassVar[Dict[str, str]] = {}
+    # _cache_lock: ClassVar[Lock] = Lock()
+
+    #_url_list_appender = UrlListAppender("urls.json") #todo: remove
+
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     _embedding_model = SentenceTransformer("sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
@@ -67,23 +73,24 @@ class SearchSystem:
                        sites: Optional[List[str]] = None,
                        additional_params=None) -> List[SearchEngResult]:
 
-        def process_result(result):
-            url = result['url']
-
-            with SearchSystem._cache_lock:
-                cached_content = SearchSystem._shared_cache.get(url)
-                if cached_content is not None:
-                    # Cache hit for URL
-                    result['full_content'] = cached_content
-                    return result
-
-            content = SearchSystem._fetch_raw_content(result['url'])
-
-            with SearchSystem._cache_lock:
-                SearchSystem._shared_cache[url] = content
-                result['full_content'] = content
-
-            return result
+        # def process_result(result):
+        #     url = result['url']
+        #
+        #     with SearchSystem._cache_lock:
+        #         cached_content = SearchSystem._shared_cache.get(url)
+        #         if cached_content is not None:
+        #             # Cache hit for URL
+        #             result['full_content'] = cached_content
+        #             return result
+        #
+        #     content = SearchSystem._fetch_raw_content(result['url'])
+        #
+        #     with SearchSystem._cache_lock:
+        #         SearchSystem._shared_cache[url] = content
+        #         result['full_content'] = content
+        #
+        #     print(".",end="",flush=True) #todo: remove
+        #     return result
 
         search_engine: BaseSearchEngine = self._create_search_engine()
 
@@ -107,6 +114,7 @@ class SearchSystem:
                 r['query'] = query
                 r['search_engine'] = self._search_api.value
                 r['full_content'] = ""
+                #self._url_list_appender.append_url(r['url'])  #todo: remove
             all_results.extend(filtered_results)
 
         if include_raw_content:
@@ -114,10 +122,9 @@ class SearchSystem:
             for r in all_results:
                 url_set.add(r['url'])
 
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                futures = [executor.submit(process_result, {"url": r}) for r in url_set]
-                processed_results = [future.result() for future in as_completed(futures)]
-            processed_results = {r['url']: r['full_content'] for r in processed_results}
+            url_loader = UrlFetcher()
+            processed_results = url_loader.fetch_contents(list(url_set))
+
             for r in all_results:
                 r['full_content'] = processed_results[r['url']]
 
@@ -140,83 +147,85 @@ class SearchSystem:
         else:
             raise ValueError("Invalid search engine name")
 
-    @staticmethod
-    def _fetch_pdf(url: str) -> bytes:
-        with sync_playwright() as p:
-            browser = p.chromium.launch()
-            page = browser.new_page()
-            try:
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    temp_file_path = tmp_file.name
+    # todo: remove
+    # @staticmethod
+    # def _fetch_pdf(url: str) -> bytes:
+    #     with sync_playwright() as p:
+    #         browser = p.chromium.launch()
+    #         page = browser.new_page()
+    #         try:
+    #             with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+    #                 temp_file_path = tmp_file.name
+    #
+    #             with page.expect_download() as download_info:
+    #                 page.goto(url)
+    #                 download = download_info.value
+    #                 download.save_as(temp_file_path)
+    #                 with open(temp_file_path, 'rb') as f:
+    #                     pdf_bytes = f.read()
+    #                     return pdf_bytes
+    #         finally:
+    #             browser.close()
+    #             if temp_file_path and os.path.exists(temp_file_path):
+    #                 os.remove(temp_file_path)
 
-                with page.expect_download() as download_info:
-                    page.goto(url)
-                    download = download_info.value
-                    download.save_as(temp_file_path)
-                    with open(temp_file_path, 'rb') as f:
-                        pdf_bytes = f.read()
-                        return pdf_bytes
-            finally:
-                browser.close()
-                if temp_file_path and os.path.exists(temp_file_path):
-                    os.remove(temp_file_path)
-
-    @staticmethod
-    def _fetch_raw_content(url: str) -> Optional[str]:
-        try:
-            session = requests.Session()
-            session.verify = False
-            session.mount("https://", SSLIgnoreAdapter())
-            try:
-                head_resp = session.head(url, allow_redirects=True)
-                content_type = head_resp.headers.get("Content-Type", "")
-            except:
-                content_type = ""
-
-            if url.lower().endswith(".pdf") or "application/pdf" in content_type:
-                try:
-                    scraper = cloudscraper.create_scraper()  # crea un sessione che esegue JS-challenge
-                    scraper.mount("https://", SSLIgnoreAdapter())
-                    response = scraper.get(url, verify=False)
-                    pdf_bytes = response.content
-                    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-                except Exception as e:
-                    pdf_bytes = SearchSystem._fetch_pdf(url)
-                    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-
-                with lock:
-                    # da eseguire in mutua esclusione
-                    testo = pymupdf4llm.to_markdown(doc)
-                    return testo.strip() if testo else "[Nessun testo estraibile dal PDF]"
-
-            # Create a client with reasonable timeout
-            with sync_playwright() as p:
-                browser = p.chromium.launch(headless=True)  # headless=False per vedere il browser
-                context = browser.new_context(
-                    user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-                    viewport={"width": 1280, "height": 800},
-                    java_script_enabled=True,
-                )
-                page = context.new_page()
-                page.goto(url, wait_until="networkidle", timeout=60 * 1000)  # 60 sec.
-                page.wait_for_load_state('networkidle')
-
-                # Sequenza di azioni che simula comportamento umano nella navigazione:
-                # pause casuali + movimento mouse + scroll naturale rendono più difficile il rilevamento come bot
-                # da parte dei sistemi anti-automazione
-                time.sleep(random.uniform(0.5, 1.5))
-                page.mouse.move(300, 400)
-                time.sleep(random.uniform(0.5, 1.5))
-                page.mouse.wheel(0, 500)
-
-                # html = page.content()
-                html = page.inner_html("body")
-                doc = Document(html)
-                contenuto_html = doc.summary()
-                return markdownify(contenuto_html)
-        except Exception as e:
-            logger.warning(f"Warning: Failed to fetch full page content for {url}: {str(e)}")
-            return None
+    # todo: remove
+    # @staticmethod
+    # def _fetch_raw_content(url: str) -> Optional[str]:
+    #     try:
+    #         session = requests.Session()
+    #         session.verify = False
+    #         session.mount("https://", SSLIgnoreAdapter())
+    #         try:
+    #             head_resp = session.head(url, allow_redirects=True)
+    #             content_type = head_resp.headers.get("Content-Type", "")
+    #         except:
+    #             content_type = ""
+    #
+    #         if url.lower().endswith(".pdf") or "application/pdf" in content_type:
+    #             try:
+    #                 scraper = cloudscraper.create_scraper()  # crea un sessione che esegue JS-challenge
+    #                 scraper.mount("https://", SSLIgnoreAdapter())
+    #                 response = scraper.get(url, verify=False)
+    #                 pdf_bytes = response.content
+    #                 doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    #             except Exception as e:
+    #                 pdf_bytes = SearchSystem._fetch_pdf(url)
+    #                 doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    #
+    #             with lock:
+    #                 # da eseguire in mutua esclusione
+    #                 testo = pymupdf4llm.to_markdown(doc)
+    #                 return testo.strip() if testo else "[Nessun testo estraibile dal PDF]"
+    #
+    #         # Create a client with reasonable timeout
+    #         with sync_playwright() as p:
+    #             browser = p.chromium.launch(headless=True)  # headless=False per vedere il browser
+    #             context = browser.new_context(
+    #                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    #                 viewport={"width": 1280, "height": 800},
+    #                 java_script_enabled=True,
+    #             )
+    #             page = context.new_page()
+    #             page.goto(url, wait_until="networkidle", timeout=60 * 1000)  # 60 sec.
+    #             page.wait_for_load_state('networkidle')
+    #
+    #             # Sequenza di azioni che simula comportamento umano nella navigazione:
+    #             # pause casuali + movimento mouse + scroll naturale rendono più difficile il rilevamento come bot
+    #             # da parte dei sistemi anti-automazione
+    #             time.sleep(random.uniform(0.5, 1.5))
+    #             page.mouse.move(300, 400)
+    #             time.sleep(random.uniform(0.5, 1.5))
+    #             page.mouse.wheel(0, 500)
+    #
+    #             # html = page.content()
+    #             html = page.inner_html("body")
+    #             doc = Document(html)
+    #             contenuto_html = doc.summary()
+    #             return markdownify(contenuto_html)
+    #     except Exception as e:
+    #         logger.warning(f"Warning: Failed to fetch full page content for {url}: {str(e)}")
+    #         return None
 
     def _rank_search_results(self, results: List[SearchEngResult], top_n: int,
                              include_raw_content: bool) -> List[SearchEngResult]:

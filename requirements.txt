@@ -6,6 +6,7 @@ duckduckgo_search
 googlesearch-python
 ipython
 langchain
+langchain_core
 langgraph
 langchain-openai
 langchain-pymupdf4llm

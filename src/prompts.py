@@ -24,6 +24,39 @@ La risposta deve essere in formato JSON valido, seguendo lo schema seguente:
 {json_format}
 """
 
+report_planner_query_writer_with_feedback_instructions="""Stai svolgendo una ricerca per finalizzare un report aggiornato e approfondito su un determinato argomento.
+
+# CONTESTO
+Data attuale: {current_date}
+
+# ARGOMENTO DEL REPORT
+{topic}
+
+## Queste sono le prime informazioni raccolte sull’argomento:
+{starting_knowledge}
+
+## STRUTTURA PROPOSTA DEL REPORT
+Questa è la struttura iniziale delle sezioni prevista:
+{proposed_structure}
+
+# OBIETTIVO
+Il tuo compito è generare {number_of_queries} query di ricerca web che ti permettano di:
+- Approfondire i contenuti richiesti dalla struttura proposta.
+- Integrare o modificare la struttura in base ai feedback ricevuti.
+- Raccogliere informazioni dettagliate, aggiornate e affidabili per migliorare la qualità complessiva del report.
+
+Le query devono:
+1. Essere strettamente correlate all’argomento e al miglioramento della struttura.
+2. Concentrarsi sia sulla validazione delle sezioni esistenti, sia sull’approfondimento o aggiunta di temi suggeriti dal feedback.
+3. Essere complementari tra loro, evitando sovrapposizioni.
+
+Cerca di formulare query specifiche e mirate, che restituiscano fonti autorevoli e pertinenti attraverso i motori di ricerca.
+
+# FORMATO
+La risposta deve essere in formato JSON valido, seguendo lo schema seguente:
+{json_format}
+"""
+
 report_planner_instructions_initial="""# ISTRUZIONI GENERALI
 Il tuo compito è analizzare un argomento e produrre un piano dettagliato per la redazione di un report chiaro, conciso e completo. La struttura deve includere: 
 
@@ -91,9 +124,71 @@ La risposta deve essere in formato JSON valido, seguendo lo schema seguente:
 {json_format}
 """
 
-# ******
-# todo: fare il report planner con il feedback utente
-# ******
+report_planner_instructions_with_feedback_and_additional_section="""# ISTRUZIONI GENERALI
+Il tuo compito è analizzare un argomento e produrre un piano dettagliato per la redazione di un report chiaro, conciso e completo.  
+La struttura deve includere:
+
+1. Un elenco delle **principali tematiche** da trattare.
+2. La suddivisione del report in **sezioni logiche e distinte**, senza sovrapposizioni.
+3. L’integrazione di una **nuova sezione proposta** e il recepimento del **feedback** ricevuto su una bozza precedente.
+
+---
+
+## DATI DI INGRESSO
+
+### Argomento del report:
+{topic}
+
+### Struttura suggerita (iniziale):
+La proposta precedente delle sezioni è la seguente:
+{report_organization}
+
+### Feedback dell’utente:
+Questi sono i commenti e le osservazioni forniti sulla struttura proposta:
+{user_feedback}
+
+### Contesto aggiuntivo:
+{context}
+
+---
+
+## FASE 1 – ELENCO DELLE TEMATICHE PRINCIPALI
+
+Analizza l’argomento considerando anche la nuova sezione proposta e il feedback ricevuto.  
+Identifica le **tematiche fondamentali** da trattare nel report.  
+Per ogni tematica, includi:
+- **Titolo**: nome sintetico della tematica.
+- **Descrizione**: breve spiegazione del contenuto o della sua rilevanza.
+
+Indicazioni particolari se l’argomento è tecnico/legale:
+- Considera norme, leggi, direttive, standard tecnici e buone pratiche operative.
+
+## FASE 2 – SEZIONI DEL REPORT
+
+Sulla base delle tematiche identificate, definisci la suddivisione in **sezioni distinte**, considerando anche:
+- L'inserimento della nuova sezione proposta.
+- Le modifiche o aggiunte suggerite dal feedback.
+
+Ogni sezione deve avere i seguenti campi:
+- **Nome**: il titolo della sezione.
+- **Descrizione**: breve panoramica dei temi trattati nella sezione.
+- **Ricerca**: specifica se è necessaria ulteriore ricerca web per completare la sezione.
+- **Contenuto**: lascia questo campo vuoto per ora.
+- **Tipo**: uno tra "introduzione", "conclusioni", "confronto" o "standard".
+
+---
+
+## LINEE GUIDA PER LA GENERAZIONE
+- Rispetta le indicazioni fornite nella struttura iniziale, integrando però correttamente la nuova sezione e il feedback.
+- Garantisci un flusso logico e progressivo delle sezioni.
+- Evita sovrapposizioni o ripetizioni tra sezioni.
+- Unifica temi simili quando opportuno.
+- Inserisci esempi pratici e riferimenti normativi dove rilevanti.
+
+# FORMATO
+La risposta deve essere in formato JSON valido, seguendo questo schema:
+{json_format}
+"""
 
 query_writer_instructions="""# OBIETTIVO
 Il tuo compito è generare un insieme di query di ricerca web specifiche per raccogliere informazioni utili alla stesura di **una singola sezione** di un report informativo.
