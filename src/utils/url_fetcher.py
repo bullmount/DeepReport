@@ -30,26 +30,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
-import io
-from PyPDF2 import PdfReader, PdfWriter
-
-
-# def estrai_prime_n_pagine(pdf_bytes: bytes, num_pagine:int) -> bytes:
-#     reader = PdfReader(io.BytesIO(pdf_bytes))
-#     if num_pagine > len(reader.pages):
-#         return pdf_bytes
-#
-#     writer = PdfWriter()
-#
-#     num_pagine = min(num_pagine, len(reader.pages))
-#
-#     for i in range(num_pagine):
-#         writer.add_page(reader.pages[i])
-#
-#     output_stream = io.BytesIO()
-#     writer.write(output_stream)
-#     return output_stream.getvalue()  # restituisce i bytes
-
 class SSLIgnoreAdapter(HTTPAdapter):
     def init_poolmanager(self, *args, **kwargs):
         context = ssl.create_default_context()
@@ -122,8 +102,8 @@ class UrlFetcher:
                     pipeline_options.do_ocr = False
                     pipeline_options.generate_picture_images = False
                     pipeline_options.do_table_structure = True
-                    # accelerator_options = AcceleratorOptions(num_threads=4, device=AcceleratorDevice.CUDA)
-                    # pipeline_options.accelerator_options = accelerator_options
+                    accelerator_options = AcceleratorOptions(num_threads=1, device=AcceleratorDevice.CUDA)
+                    pipeline_options.accelerator_options = accelerator_options
                     pipeline_options.table_structure_options.do_cell_matching = False
                     source = DocumentStream(name="pdf_to_convert.pdf", stream=buf)
                     doc_converter = DocumentConverter(
@@ -186,7 +166,7 @@ class UrlFetcher:
                             UrlFetcher._shared_cache[url] = contenuto_markdown
                         return url, contenuto_markdown
                     except Exception as e:
-                        # todo: log error
+                        logger.error(f"Si è verificato un errore: {str(e)}")
                         return url, ""
                     finally:
                         browser.close()

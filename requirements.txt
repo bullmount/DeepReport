@@ -3,6 +3,7 @@ demjson3
 docling
 dotenv
 duckduckgo_search
+fastapi
 googlesearch-python
 ipython
 langchain
@@ -26,4 +27,5 @@ scikit-learn
 selenium
 sentence_transformers
 urllib3
+uvicorn
 webdriver-manager
