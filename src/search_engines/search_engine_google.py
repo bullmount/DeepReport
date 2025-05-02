@@ -5,6 +5,7 @@ import time
 from googlesearch import search
 
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -12,20 +13,22 @@ logger = logging.getLogger(__name__)
 class GoogleSearchEngine(BaseSearchEngine):
     _last_search_time: ClassVar[float] = 0.0
     _min_delay: ClassVar[float] = 1.0
+    _delay_lock: ClassVar[threading.Lock] = threading.Lock()
 
     def __init__(self):
         super().__init__(name="Google")
 
     @classmethod
     def _ensure_delay(cls) -> None:
-        """Metodo di classe per gestire il delay tra le ricerche"""
-        current_time = time.time()
-        elapsed = current_time - cls._last_search_time
+        with cls._delay_lock:
+            """Metodo di classe per gestire il delay tra le ricerche"""
+            current_time = time.time()
+            elapsed = current_time - cls._last_search_time
 
-        if elapsed < cls._min_delay:
-            time.sleep(cls._min_delay - elapsed)
+            if elapsed < cls._min_delay:
+                time.sleep(cls._min_delay - elapsed)
 
-        cls._last_search_time = time.time()
+            cls._last_search_time = time.time()
 
     def search(self, query, max_results: Optional[int] = 10, sites: List[str] = None) -> List[SearchEngResult]:
         # Applica il rate limiting a livello di classe

@@ -3,18 +3,21 @@ from pathlib import Path
 from typing import Dict, Literal
 from langchain_core.runnables import RunnableConfig
 
+from agents.agent_base import DeepReportAgentBase
 from agents.build_section_with_web_research import BuildSectionWithWebResearch
 from agents.gather_completed_sections_agent import GatherCompletedSections
 from deep_report_state import DeepReportState, Queries, Sections, SectionState
 from langgraph.types import interrupt, Command
 from langgraph.constants import Send
 
+from event_notifier import ProcessState, EventData
 
-class HumanFeedbackAgent():
+
+class HumanFeedbackAgent(DeepReportAgentBase):
     Name = "human_feedback"
 
     def __init__(self):
-        pass
+        super().__init__()
 
     @classmethod
     def node(cls):
@@ -42,7 +45,19 @@ Il piano del rapporto soddisfa le tue esigenze?
 Inserisci 'true' per approvare il piano del rapporto.
 Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
 
-        feedback = interrupt({"question": interrupt_message})
+        data = {
+            "sezioni":
+                [{
+                    "id": s.id,
+                    "titolo": s.nome,
+                    "descrizione": s.descrizione,
+                    "contenuto": s.contenuto,
+                    "iteration_count": 0,
+                    "richiede_ricerca": s.ricerca
+                } for s in sections]
+        }
+
+        feedback = interrupt({"question": interrupt_message, "sections": data})
 
         # todo: remove -------------------------------
         # file_path = Path("completed_sections.json")
@@ -58,14 +73,19 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
                 feedback = True
 
         if isinstance(feedback, bool) and feedback is True:
+            self.event_notify(event_data=EventData(event_type="INFO",
+                                                   state=ProcessState.Writing,
+                                                   message="Redazione delle singole sezioni",
+                                                   data=data))
             if len([s for s in sections if s.ricerca]) == 0:
                 return Command(goto=GatherCompletedSections.Name,
                                update={})
             else:
                 return Command(goto=[
                     Send(BuildSectionWithWebResearch.Name,
-                         SectionState(topic=topic, section=s,all_sections=state.sections,
-                                      search_iterations=0, web_research_results=[])
+                         SectionState(topic=topic, section=s, all_sections=state.sections,
+                                      search_iterations=0, web_research_results=[],
+                                      bad_search_results=state.bad_search_results)
                          )
                     for s in sections if s.ricerca])
         elif isinstance(feedback, str):

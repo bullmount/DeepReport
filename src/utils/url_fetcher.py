@@ -12,6 +12,7 @@ import time
 from threading import Lock
 from requests.adapters import HTTPAdapter
 import ssl
+import pymupdf4llm
 import os
 import tempfile
 from io import BytesIO
@@ -90,7 +91,11 @@ class UrlFetcher:
                     pdf_bytes = response.content
                     doc = fitz.open(stream=pdf_bytes, filetype="pdf")  # verifica che è n pdf
                 except Exception as e:
-                    pdf_bytes = self._fetch_pdf(url)
+                    try:
+                        pdf_bytes = self._fetch_pdf(url)
+                    except Exception as e:
+                        #todo: log error
+                        return url, ""
 
                 if len(pdf_bytes) >= self.max_pdf_size:
                     return url, ""
@@ -102,7 +107,7 @@ class UrlFetcher:
                     pipeline_options.do_ocr = False
                     pipeline_options.generate_picture_images = False
                     pipeline_options.do_table_structure = True
-                    accelerator_options = AcceleratorOptions(num_threads=1, device=AcceleratorDevice.CUDA)
+                    accelerator_options = AcceleratorOptions(num_threads=2, device=AcceleratorDevice.CUDA)
                     pipeline_options.accelerator_options = accelerator_options
                     pipeline_options.table_structure_options.do_cell_matching = False
                     source = DocumentStream(name="pdf_to_convert.pdf", stream=buf)
@@ -116,11 +121,16 @@ class UrlFetcher:
                     testo = testo.replace("<!-- image -->\n\n", "")
                     return url, testo.strip() if testo else "[Nessun testo estraibile dal PDF]"
                 except Exception as e:
-                    logger.error(f"Si è verificato un errore: {str(e)}")
-                    # logger.error(f"Traceback completo:\n{traceback.format_exc()}")
+                    try:
+                        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+                        testo = pymupdf4llm.to_markdown(doc)
+                        return url, testo.strip()
+                    except Exception as e:
+                        logger.error(f"Si è verificato un errore: {str(e)}")
+                        # logger.error(f"Traceback completo:\n{traceback.format_exc()}")
 
-                    # print(f"errore conversione pdf: {url}")
-                    return url, ""  # "Documento PDF non convertibile"
+                        # print(f"errore conversione pdf: {url}")
+                        return url, ""  # "Documento PDF non convertibile"
             else:
                 with sync_playwright() as p:
                     browser = p.chromium.launch(headless=True)

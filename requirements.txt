@@ -3,7 +3,8 @@ demjson3
 docling
 dotenv
 duckduckgo_search
-fastapi
+flask
+flask-cors
 googlesearch-python
 ipython
 langchain

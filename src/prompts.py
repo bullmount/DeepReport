@@ -107,7 +107,7 @@ Ogni sezione deve contenere i seguenti campi:
 - **Nome**: il titolo della sezione.
 - **Descrizione**: una breve panoramica dei temi principali trattati nella sezione.
 - **Ricerca**: indica se è necessaria un’ulteriore ricerca web per completare la sezione.
-- **Contenuto**: lascia questo campo vuoto per ora; sarà riempito in seguito.
+- **Contenuto**: lascia sempre questo campo vuoto per ora; sarà riempito in seguito.
 - **Tipo**: tipo di sezione; uno tra questi valori: "introduzione", "conclusioni", "confronto" o "standard".
 ---
 
@@ -118,6 +118,7 @@ Ogni sezione deve contenere i seguenti campi:
 - Unifica concetti affini in un’unica sezione, dove possibile.
 - Verifica che tutte le aree chiave indicate nel contesto siano rappresentate.
 - Rivedi la struttura per assicurarti che segua un flusso logico e progressivo.
+- **non compilare** il contenuto della sezione.
 
 # FORMATO
 La risposta deve essere in formato JSON valido, seguendo lo schema seguente:

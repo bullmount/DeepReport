@@ -1,8 +1,11 @@
 from typing import Dict
 from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import HumanMessage, SystemMessage
+
+from agents.agent_base import DeepReportAgentBase, EventData
 from configuration import Configuration
 from deep_report_state import DeepReportState, Queries, Sections
+from event_notifier import ProcessState
 from prompts import report_planner_query_writer_instructions, report_planner_instructions_initial, \
     report_planner_query_writer_with_feedback_instructions, \
     report_planner_instructions_with_feedback_and_additional_section
@@ -14,11 +17,11 @@ from utils.utils import get_config_value, get_current_date, estrai_sezioni_markd
 from pathlib import Path
 
 
-class ReportPlannerAgent:
+class ReportPlannerAgent(DeepReportAgentBase):
     Name = "generate_report_plan"
 
-    def __init__(self, ):
-        pass
+    def __init__(self):
+        super().__init__()
 
     @classmethod
     def node(cls):
@@ -55,10 +58,22 @@ class ReportPlannerAgent:
 
         current_date = get_current_date()
 
-        sources = search_sys.execute_search([topic], max_filtered_results=8, max_results_per_query=8,
-                                            include_raw_content=False, exclude_sources=[])
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.Searching,
+                                               message="Pre ricerca per focalizzare le query"))
+
+        sources, bad_urls = search_sys.execute_search([topic],
+                                                      max_filtered_results=configurable.max_results_per_query * 2,
+                                                      max_results_per_query=configurable.max_results_per_query * 2,
+                                                      include_raw_content=False,  # nella pre ricerca [include_raw_content = False]
+                                                      exclude_sources=state.bad_search_results)
         starting_knowledge = sources_formatter.format_sources(sources, include_raw_content=False,
                                                               max_tokens_per_source=1000, numbering=False)
+
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.Searching,
+                                               message="Determinazione query di ricerca"))
+
         if feedback is None:  # query per la prima pianificazione
             system_instructions_query = report_planner_query_writer_instructions.format(topic=topic,
                                                                                         current_date=current_date,
@@ -68,7 +83,8 @@ class ReportPlannerAgent:
 
             results = structured_llm.invoke([SystemMessage(content=system_instructions_query),
                                              HumanMessage(
-                                                 content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")])
+                                                 content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")],
+                                            response_format=Queries.model_json_schema())
             queries: Queries = parse_model(Queries, results.content)
         else:   # query per revisione della pianificazione
             _, proposed_structure = estrai_sezioni_markdown_e_indice_assegnata(state.sections, None,
@@ -83,14 +99,22 @@ class ReportPlannerAgent:
                                                                                                       )
             results = structured_llm.invoke([SystemMessage(content=system_instructions_query),
                                              HumanMessage(
-                                                 content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")])
+                                                 content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")],
+                                            response_format=Queries.model_json_schema())
             queries: Queries = parse_model(Queries, results.content)
 
         query_list = [state.topic]
         query_list.extend([query.search_query for query in queries.queries])
 
-        sources = search_sys.execute_search(query_list, max_filtered_results=4, max_results_per_query=4,
-                                            include_raw_content=True, exclude_sources=[])
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.Searching,
+                                               message="Ricerca contenuti"))
+
+        sources, bad_urls = search_sys.execute_search(query_list,
+                                                      max_filtered_results=configurable.max_results_per_query,
+                                                      max_results_per_query=configurable.max_results_per_query,
+                                                      include_raw_content=configurable.fetch_full_page,
+                                                      exclude_sources=[])
 
         source_str = sources_formatter.format_sources(sources,
                                                       include_raw_content=True,
@@ -99,6 +123,10 @@ class ReportPlannerAgent:
 
         planner_provider = get_config_value(configurable.planner_provider)
         planner_model = get_config_value(configurable.planner_model)
+
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.Planning,
+                                               message="Pianificazione sezioni del report."))
 
         if feedback is None:  # prima pianificazione
             system_instructions_sections = report_planner_instructions_initial.format(topic=topic,
@@ -112,7 +140,8 @@ class ReportPlannerAgent:
     Orni tematica deve avere i campi: titolo e descrizione."""
             planner_llm = llm_provide(planner_model, planner_provider, max_tokens=6000)
             result_sections = planner_llm.invoke([SystemMessage(content=system_instructions_sections),
-                                                  HumanMessage(content=planner_message)])
+                                                  HumanMessage(content=planner_message)],
+                                                 response_format=Sections.model_json_schema())
         else:
             _, proposed_structure = estrai_sezioni_markdown_e_indice_assegnata(state.sections, None,
                                                                                include_assegnata=True)
@@ -128,10 +157,15 @@ class ReportPlannerAgent:
                 Orni tematica deve avere i campi: titolo e descrizione."""
             planner_llm = llm_provide(planner_model, planner_provider, max_tokens=6000)
             result_sections = planner_llm.invoke([SystemMessage(content=system_instructions_sections),
-                                                  HumanMessage(content=planner_message)])
-
+                                                  HumanMessage(content=planner_message)],
+                                                 response_format=Sections.model_json_schema())
 
         sections: Sections = parse_model(Sections, result_sections.content)
+
+        section_id = 0
+        for s in sections.sezioni:
+            section_id = section_id + 1
+            s.id = section_id
 
         # todo: remove -------
         output_path = Path("sections.json")
@@ -143,4 +177,6 @@ class ReportPlannerAgent:
             f.write(queries.model_dump_json(indent=4))
         # --------------------
 
-        return {"queries": queries, "themes": sections.tematiche, "sections": sections.sezioni}
+        return {"queries": queries, "themes": sections.tematiche,
+                "bad_search_results": bad_urls,
+                "sections": sections.sezioni}

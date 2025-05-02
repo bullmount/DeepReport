@@ -3,6 +3,7 @@ from typing import Dict
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
 
+from agents.agent_base import DeepReportAgentBase, EventData
 from configuration import Configuration
 from deep_report_state import SectionState, Queries
 from prompts import query_writer_instructions
@@ -11,17 +12,21 @@ from utils.llm_provider import llm_provide
 from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
 
 
-class GenerateQueriesAgent:
+class GenerateQueriesAgent(DeepReportAgentBase):
     Name: str = "generate_queries"
 
     def __init__(self):
-        pass
+        super().__init__()
 
     @classmethod
     def node(cls):
         return cls.Name, cls().invoke
 
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
+        #todo: review
+        # self.event_notify(event_data=EventData(event_type="INFO",
+        #                                        state=ProcessState.Writing,
+        #                                        message=f"{state.section.nome} - Preparazione query di ricerca"))
         topic = state.topic
         section = state.section
         section_number, other_sections = estrai_sezioni_markdown_e_indice_assegnata(state.all_sections, state.section)
@@ -44,7 +49,8 @@ class GenerateQueriesAgent:
                                                                json_format=Queries.model_json_schema())
         results = structured_llm.invoke([SystemMessage(content=system_instructions),
                                          HumanMessage(
-                                             content=f"Genera query di ricerca per l'argomento della sezione numero {section_number}.")])
+                                             content=f"Genera query di ricerca per l'argomento della sezione numero {section_number}.")],
+                                             response_format=Queries.model_json_schema())
         queries: Queries = parse_model(Queries, results.content)
 
         return {"search_queries": queries.queries}

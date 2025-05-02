@@ -1,5 +1,5 @@
 import math
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from collections import Counter
 import numpy as np
 import pandas as pd
@@ -57,8 +57,9 @@ class SearchSystem:
                        include_raw_content: bool = False,
                        exclude_sources: Optional[List[SearchEngResult]] = None,
                        sites: Optional[List[str]] = None,
-                       additional_params=None) -> List[SearchEngResult]:
+                       additional_params=None) -> Tuple[List[SearchEngResult],List[SearchEngResult]]:
 
+        bad_urls = []
         search_engine: BaseSearchEngine = self._create_search_engine()
 
         all_results: List[SearchEngResult] = []
@@ -68,14 +69,18 @@ class SearchSystem:
         num_exclusions = len(exclude_sources)
         if num_exclusions > 0:
             delta_per_query = math.ceil(num_exclusions / num_queries)
-            max_results_per_query = max_results_per_query + delta_per_query
+            max_results_per_query2 = max_results_per_query + delta_per_query
+        else:
+            max_results_per_query2 = max_results_per_query
 
         for query in query_list:
             all_query_results: List[SearchEngResult] = search_engine.search(query,
-                                                                            max_results=max_results_per_query,
+                                                                            max_results=max_results_per_query2,
                                                                             sites=sites)
             filtered_results = [r for r in all_query_results
                                 if not any(exclude_result['url'] == r['url'] for exclude_result in exclude_sources)]
+
+            filtered_results = filtered_results[:max_results_per_query]
 
             for r in filtered_results:
                 r['query'] = query
@@ -95,18 +100,21 @@ class SearchSystem:
             for r in all_results:
                 r['full_content'] = processed_results[r['url']]
 
+            bad_urls =  [r for r in all_results if
+                           r['full_content'] is not None and len(r['full_content'].split()) <= 80]
+
             all_results = [r for r in all_results if
                            r['full_content'] is not None and len(r['full_content'].split()) > 80]
 
         if len(all_results) <= 1:
-            return all_results
+            return all_results, bad_urls
 
         for x in all_results:
             if len(x["snippet"]) == 0:
                 x["snippet"] = "nessuna descrizione"
 
         top_results = self._rank_search_results(all_results, max_filtered_results, include_raw_content)
-        return top_results[:max_filtered_results]
+        return top_results[:max_filtered_results], bad_urls
 
     def _create_search_engine(self) -> BaseSearchEngine:
         if self._search_api == SearchAPI.GOOGLESEARCH:

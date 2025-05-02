@@ -20,6 +20,9 @@ class Queries(BaseModel):
 
 
 class Section(BaseModel):
+    id:int = Field(
+        description="id della sezione con anche valore di posizione.",
+    )
     nome: str = Field(
         description="Nome per questa sezione del report.",
     )
@@ -89,8 +92,9 @@ class DeepReportState():
     themes: list[Tematica] = field(default=None)
     sections: list[Section] = field(default=None)  # List of report sections
     completed_sections: Annotated[list, operator.add]  # Send() API key
-    report_sections_from_research: str = field(
-        default=None)  # String of any completed sections from research to write final sections
+    report_sections_from_research: str = field(default=None)
+    bad_search_results: Annotated[list, operator.add] = field(default_factory=list)
+
     final_report: str = field(default=None)  # Final report
 
 
@@ -105,6 +109,7 @@ class SectionState:
     report_sections_from_research: str = field(default=None)
     completed_sections: list[Section] = field(default=None)
     web_research_results: Annotated[list, operator.add] = field(default_factory=list)
+    bad_search_results: Annotated[list, operator.add] = field(default_factory=list)
 
 
 @dataclass(kw_only=True)
