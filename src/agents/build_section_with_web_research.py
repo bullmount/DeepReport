@@ -10,6 +10,8 @@ from agents.write_section_agent import WriteSectionAgent
 from deep_report_state import  SectionState, SectionOutputState
 from langchain_core.runnables import RunnableConfig
 
+from utils.traccia_tempo import time_tracker
+
 
 class BuildSectionWithWebResearch(DeepReportAgentBase):
     Name = "build_section_with_web_research"
@@ -34,6 +36,7 @@ class BuildSectionWithWebResearch(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
+    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         res = self._graph.invoke(state, config)
         return res

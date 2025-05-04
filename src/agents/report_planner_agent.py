@@ -13,6 +13,7 @@ from search_system import SearchSystem
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
+from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
 from pathlib import Path
 
@@ -27,6 +28,7 @@ class ReportPlannerAgent(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
+    @time_tracker
     def invoke(self, state: DeepReportState, config: RunnableConfig) -> Dict[str, any]:
         topic = state.topic
         feedback = state.feedback_on_report_plan
@@ -108,13 +110,13 @@ class ReportPlannerAgent(DeepReportAgentBase):
 
         self.event_notify(event_data=EventData(event_type="INFO",
                                                state=ProcessState.Searching,
-                                               message="Ricerca contenuti"))
+                                               message="Ricerca contenuti su web"))
 
         sources, bad_urls = search_sys.execute_search(query_list,
                                                       max_filtered_results=configurable.max_results_per_query,
                                                       max_results_per_query=configurable.max_results_per_query,
                                                       include_raw_content=configurable.fetch_full_page,
-                                                      exclude_sources=[])
+                                                      exclude_sources=state.bad_search_results)
 
         source_str = sources_formatter.format_sources(sources,
                                                       include_raw_content=True,
@@ -151,10 +153,10 @@ class ReportPlannerAgent(DeepReportAgentBase):
                 user_feedback=feedback,
                 context=source_str,
                 json_format=Sections.model_json_schema())
-            planner_message = """Pianifica le sezioni che devono comporre il report.
+            planner_message = """Pianifica le sezioni che devono comporre il report considerado il feedback dell'utente.
                 La tua risposta deve includere un campo 'sezioni' contenente un elenco di sezioni e un campo 'tematiche' contenente l'elenco delle tematiche importanti sul report.
                 Ogni sezione deve avere i campi: nome, descrizione, piano, indicatore se richiede ricerca, contenuto e tipo.
-                Orni tematica deve avere i campi: titolo e descrizione."""
+                Ogni tematica deve avere i campi: titolo e descrizione."""
             planner_llm = llm_provide(planner_model, planner_provider, max_tokens=6000)
             result_sections = planner_llm.invoke([SystemMessage(content=system_instructions_sections),
                                                   HumanMessage(content=planner_message)],
@@ -162,10 +164,10 @@ class ReportPlannerAgent(DeepReportAgentBase):
 
         sections: Sections = parse_model(Sections, result_sections.content)
 
-        section_id = 0
+        section_pos = 0
         for s in sections.sezioni:
-            section_id = section_id + 1
-            s.id = section_id
+            section_pos = section_pos + 1
+            s.posizione = section_pos
 
         # todo: remove -------
         output_path = Path("sections.json")

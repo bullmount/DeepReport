@@ -1,11 +1,13 @@
 import requests
 from dataclasses import dataclass, asdict
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TypedDict, List
 import logging
 from datetime import datetime
 import json
 from enum import IntEnum
 import time
+
+from deep_report_state import SectionState
 
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -14,24 +16,28 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super().default(obj)
 
+
 class ProcessState(IntEnum):
     NotStarted = 0,
     Started = 1,
     Searching = 2,
     Planning = 3,
     WaitingForApproval = 4,
-    Writing = 5,
-    Reviewing = 6,
-    Canceled = 7,
-    Completed = 8,
-    Aborted = 9,
-    Error = 10
+    Approved=5,
+    WritingSection = 6,
+    Reviewing = 7,
+    Canceled = 8,
+    Completed = 9,
+    #----
+    Aborted = 10,
+    Error = 11
+
 
 @dataclass
 class EventData:
     event_type: str
     message: str
-    state:int = None
+    state: int = None
     timestamp: datetime = None
     # severity: str = "INFO"
     data: Optional[dict] = None
@@ -47,6 +53,25 @@ class EventData:
         dict_data['timestamp'] = datetime.now().isoformat()
         dict_data['data'] = json.dumps(self.data, cls=CustomJSONEncoder)
         return dict_data
+
+
+class SectionData(TypedDict):
+    sezione_posizione: int
+    sezione_nome: str
+    search_iterations: int
+    search_queries: List[str]
+
+class FaseSezione(IntEnum):
+    QUERY=0,
+    SERACH=1,
+    WRITE=2,
+    COMPLETE=3
+
+def LoadSectionData(state: SectionState, fase:FaseSezione) -> SectionData:
+    return SectionData(sezione_posizione=state.section.posizione,
+                       sezione_nome=state.section.nome,
+                       search_iterations=state.search_iterations,
+                       search_queries= [q.search_query for q in state.search_queries] if state.search_queries else [])
 
 
 # @dataclass
@@ -88,7 +113,7 @@ if __name__ == "__main__":
     # Creazione client
     client = EventNotifier()
 
-    data ={"sezioni": [
+    data = {"sezioni": [
         {"titolo": "titolo1", "descrizione": "descr 1", "richiede_ricerca": True},
         {"titolo": "titolo2", "descrizione": "descr 2", "richiede_ricerca": False},
     ]}
@@ -99,7 +124,7 @@ if __name__ == "__main__":
         response = client.send_message(message)
         time.sleep(1)
         # Creazione e invio messaggio
-        message = EventData(event_type="INFO",message="ciao", state=ProcessState.WaitingForApproval, data=data)
+        message = EventData(event_type="INFO", message="ciao", state=ProcessState.WaitingForApproval, data=data)
         response = client.send_message(message)
 
         if response:

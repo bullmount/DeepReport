@@ -6,9 +6,11 @@ from langchain_core.runnables import RunnableConfig
 from agents.agent_base import DeepReportAgentBase, EventData
 from configuration import Configuration
 from deep_report_state import SectionState, Queries
+from event_notifier import ProcessState, LoadSectionData, FaseSezione
 from prompts import query_writer_instructions
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
+from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
 
 
@@ -22,11 +24,12 @@ class GenerateQueriesAgent(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
+    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
-        #todo: review
-        # self.event_notify(event_data=EventData(event_type="INFO",
-        #                                        state=ProcessState.Writing,
-        #                                        message=f"{state.section.nome} - Preparazione query di ricerca"))
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.WritingSection,
+                                               message="Preparazione query di ricerca",
+                                               data=dict(LoadSectionData(state, FaseSezione.QUERY))))
         topic = state.topic
         section = state.section
         section_number, other_sections = estrai_sezioni_markdown_e_indice_assegnata(state.all_sections, state.section)

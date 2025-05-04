@@ -20,8 +20,8 @@ class Queries(BaseModel):
 
 
 class Section(BaseModel):
-    id:int = Field(
-        description="id della sezione con anche valore di posizione.",
+    posizione:int = Field(
+        description="posizione della sezione a partire da 1.",default=1
     )
     nome: str = Field(
         description="Nome per questa sezione del report.",

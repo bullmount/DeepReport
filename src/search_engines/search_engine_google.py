@@ -34,28 +34,30 @@ class GoogleSearchEngine(BaseSearchEngine):
         # Applica il rate limiting a livello di classe
         self._ensure_delay()
 
-        if sites:
-            query_con_dominio = " OR ".join([f"site:{dominio}" for dominio in sites])
-            query = query + " " + query_con_dominio
-
-        search_results = list(search(query,
-                                     num_results=max_results,
-                                     lang="it",
-                                     sleep_interval=1,
-                                     advanced=True, ))
-
         results: List[SearchEngResult] = []
-        k = 0
-        for res in search_results:
-            url = res.url
-            title = res.title if res.title else ''
-            content = res.description if res.description else ''
-            k += 1
-            if not all([url, title, content]):
-                logger.warning(f"Warning: Incomplete result from Google: {res}")
-                continue
-            results.append(
-                SearchEngResult(id=str(uuid.uuid4()), query=query, title=title, snippet=content, url=url, position=k,
-                                full_content=None, num_source=None, score=None, search_engine=self.name))
+        try:
+            if sites:
+                query_con_dominio = " OR ".join([f"site:{dominio}" for dominio in sites])
+                query = query + " " + query_con_dominio
 
+            search_results = list(search(query,
+                                         num_results=max_results,
+                                         lang="it",
+                                         sleep_interval=1,
+                                         advanced=True, ))
+
+            k = 0
+            for res in search_results:
+                url = res.url
+                title = res.title if res.title else ''
+                content = res.description if res.description else ''
+                k += 1
+                if not all([url, title, content]):
+                    logger.warning(f"Warning: Incomplete result from Google: {res}")
+                    continue
+                results.append(
+                    SearchEngResult(id=str(uuid.uuid4()), query=query, title=title, snippet=content, url=url, position=k,
+                                    full_content=None, num_source=None, score=None, search_engine=self.name))
+        except Exception as e:
+            logger.error(f"Error searching Google: {str(e)}")
         return results

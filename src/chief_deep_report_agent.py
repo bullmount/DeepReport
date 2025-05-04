@@ -30,7 +30,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                  max_search_depth:int = 2,
                  search_api: str = SearchAPI.GOOGLESEARCH,
                  domains_search_restriction: List[str] = None,
-                 fetch_full_page:bool = True):
+                 fetch_full_page:bool = False):
         super().__init__()
         task_id = str(int(time.time()))
         config: RunnableConfig = RunnableConfig(
@@ -46,22 +46,22 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                 "sites_search_restriction": domains_search_restriction,
                 "fetch_full_page": fetch_full_page,
 
-                # "planner_provider": "my_provider",
-                # "planner_model": "gpt-4o",
-                # "writer_provider": "my_provider",
-                # "writer_model": "gpt-4o"
+                "planner_provider": "my_provider",
+                "planner_model": "gpt-4o-mini",
+                "writer_provider": "my_provider",
+                "writer_model": "gpt-4o-mini"
 
-                "planner_provider": "openrouter",
-                # # # "planner_model": "google/gemini-2.0-flash-exp:free",
-                # # # "planner_model":"google/gemma-3-27b-it:free"
-                "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
-                # "planner_model": "qwen/qwen3-30b-a3b:free",
+                # "planner_provider": "openrouter",
+                # # # # "planner_model": "google/gemini-2.0-flash-exp:free",
+                # # # # "planner_model":"google/gemma-3-27b-it:free"
+                # "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                # # "planner_model": "qwen/qwen3-30b-a3b:free",
 
-                "writer_provider": "openrouter",
-                # # # "writer_model": "google/gemini-2.0-flash-exp:free",
-                # # # "writer_model":"google/gemma-3-27b-it:free"
-                "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
-                # "writer_model": "qwen/qwen3-30b-a3b:free",
+                # "writer_provider": "openrouter",
+                # # # # "writer_model": "google/gemini-2.0-flash-exp:free",
+                # # # # "writer_model":"google/gemma-3-27b-it:free"
+                # "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                # # "writer_model": "qwen/qwen3-30b-a3b:free",
 
                 #         "model_name": "mistralai/mistral-small-24b-instruct-2501:free",
                 #
@@ -151,7 +151,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
             event_type="INFO",
             state=ProcessState.Completed,
             message="Esecuzione completata con successo",
-            data={}
+            data={'final_report':result['final_report']}
         ))
         if 'final_report' in result and result['final_report']:
             with open("final_report.md", "w", encoding="utf-8") as md_file:

@@ -80,7 +80,8 @@ def deep_research():
             number_of_queries=data.config.number_of_queries,
             max_search_depth=data.config.max_search_depth,
             max_results_per_query=data.config.max_results_per_query,
-            search_api=data.config.search_api
+            search_api=data.config.search_api.value,
+            fetch_full_page=data.config.fetch_full_page
         )
         _unique_session.deep_report.invoke(_unique_session.topic)
 

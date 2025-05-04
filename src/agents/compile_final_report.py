@@ -9,6 +9,7 @@ from prompts import final_report_writer_instructions
 from search_engines.search_engine_base import SearchEngResult
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
+from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value
 import re
 
@@ -56,6 +57,7 @@ class CompileFinalReport:
     def node(cls):
         return cls.Name, cls().invoke
 
+    @time_tracker
     def invoke(self, state: DeepReportState, config: RunnableConfig):
         sections = state.sections
 

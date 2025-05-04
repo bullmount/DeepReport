@@ -7,6 +7,7 @@ from configuration import Configuration
 from deep_report_state import SectionState
 from prompts import final_section_writer_instructions
 from utils.llm_provider import llm_provide
+from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value
 
 
@@ -20,6 +21,7 @@ class WriteFinalSectionsAgent:
     def node(cls):
         return cls.Name, cls().invoke
 
+    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         configurable = Configuration.from_runnable_config(config)
 

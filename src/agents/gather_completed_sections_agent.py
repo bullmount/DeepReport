@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict
 from langchain_core.runnables import RunnableConfig
 from deep_report_state import DeepReportState, Sections
+from utils.traccia_tempo import time_tracker
 from utils.utils import format_sections
 
 
@@ -15,6 +16,7 @@ class GatherCompletedSections():
     def node(cls):
         return cls.Name, cls().invoke
 
+    @time_tracker
     def invoke(self, state: DeepReportState, config: RunnableConfig) -> Dict[str, any]:
         completed_sections = state.completed_sections
 

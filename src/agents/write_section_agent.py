@@ -8,11 +8,14 @@ from deep_report_state import SectionState, Feedback, Queries, SectionReview, De
 from langgraph.graph import END
 from langgraph.types import Command
 
+from event_notifier import ProcessState, LoadSectionData, FaseSezione
 from prompts import section_grader_instructions_initial, section_writer_instructions_initial, \
     section_writer_instructions_review
+from utils import traccia_tempo
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
+from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value, estrai_sezioni_markdown_e_indice_assegnata
 
 
@@ -26,12 +29,18 @@ class WriteSectionAgent(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
+    def notify_completion(self, state):
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.WritingSection,
+                                               message="Scrittura della sezione",
+                                               data=dict(LoadSectionData(state, FaseSezione.COMPLETE))))
+
+    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig):
-        # todo: reviewe
-        # self.event_notify(
-        #     event_data=EventData(event_type="INFO",
-        #                          state=ProcessState.Writing,
-        #                          message=f"{state.section.nome} - Scrittura della sezione [{state.search_iterations}]"))
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.WritingSection,
+                                               message="Scrittura della sezione",
+                                               data=dict(LoadSectionData(state, FaseSezione.WRITE))))
 
         configurable = Configuration.from_runnable_config(config)
 
@@ -45,6 +54,7 @@ class WriteSectionAgent(DeepReportAgentBase):
             if state.search_iterations >= configurable.max_search_depth:
                 for source in section.sources:
                     source['full_content'] = ""
+                self.notify_completion(state)
                 return Command(
                     update={"completed_sections": [section]}, goto=END)
             else:
@@ -101,6 +111,7 @@ class WriteSectionAgent(DeepReportAgentBase):
                 # si elimina full content da sources
                 for source in section.sources:
                     source['full_content'] = ""
+                self.notify_completion(state)
                 return Command(
                     update={"completed_sections": [section]}, goto=END)
 
@@ -153,6 +164,7 @@ class WriteSectionAgent(DeepReportAgentBase):
                 # si elimina full content da sources
                 for source in section.sources:
                     source['full_content'] = ""
+                self.notify_completion(state)
                 return Command(
                     update={"completed_sections": [section]}, goto=END)
             else:

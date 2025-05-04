@@ -40,7 +40,7 @@ class Configuration:
     search_api: SearchAPI = SearchAPI.GOOGLESEARCH # Default to GOOGLE
     search_api_config: Optional[Dict[str, Any]] = None
     sites_search_restriction:Optional[List[str]] = None
-    fetch_full_page:bool = True
+    fetch_full_page:bool = False
 
     planner_provider: str = "openrouter"  # Defaults to Anthropic as provider
     planner_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-7-sonnet-latest

@@ -533,11 +533,11 @@ Se devi scrivere la sezione di Conclusione/Riassunto:
 
 
 final_report_writer_instructions="""Ricevi in input un report in formato Markdown, suddiviso in sezioni, e contenente citazioni indicate come [n], dove n è il numero della fonte.
-Il tuo obiettivo è generare una revisione del report di qualità superiore a quella data in quanto evita ripetizioni tra sezioni e migliora la lettura fluida del testo.  
+Il tuo obiettivo è generare una revisione del report di qualità superiore a quella data in quanto **evita ripetizioni** sia tra sezioni che tra paragrafi e migliora la lettura fluida del testo.  
 
 Segui queste regole:
 - Riscrivere il report sezione per sezione, migliorando la chiarezza, la fluidità e l'organizzazione generale, mantenendo il formato Markdown.
-- I titoli e i sottotitoli devono essere ben strutturati e, se necessario, migliorati per rendere il documento più ordinato e leggibile.
+- I titoli e i sottotitoli devono essere ben strutturati senza ripetizioni e, se necessario, migliorati per rendere il documento più ordinato e leggibile.
 - Ogni sezione deve trattare esclusivamente l'argomento indicato dal suo titolo: se trovi contenuti che non sono pertinenti, spostali nella sezione più adatta.
 - Se trovi paragrafi simili o sovrapposti in sezioni diverse, integra i contenuti ed elimina le ripetizioni, mantenendo tutte le informazioni importanti.
 - Non devono andare perse informazioni presenti nel testo originale: riorganizza i contenuti ma assicurati che tutte le informazioni vengano mantenute.

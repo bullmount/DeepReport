@@ -22,6 +22,7 @@ import torch
 from threading import Lock
 from typing import ClassVar, Dict
 
+from utils.traccia_tempo import time_tracker
 from utils.url_fetcher import UrlFetcher
 from utils.url_list_appender import UrlListAppender
 
@@ -51,6 +52,7 @@ class SearchSystem:
     def __init__(self, search_api: SearchAPI):
         self._search_api = search_api
 
+    @time_tracker
     def execute_search(self, query_list: list[str],
                        max_filtered_results: int,
                        max_results_per_query: int,
@@ -121,8 +123,8 @@ class SearchSystem:
             return GoogleSearchEngine()
         elif self._search_api == SearchAPI.DUCKDUCKGO:
             return DuckDuckGoSearchEngine()
-        elif self._search_api == SearchAPI.TAVILY:
-            return TavilySearchEngine()
+        # elif self._search_api == SearchAPI.TAVILY:  # todo:
+        #     return TavilySearchEngine()
         else:
             raise ValueError("Invalid search engine name")
 

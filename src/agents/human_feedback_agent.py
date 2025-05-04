@@ -48,7 +48,7 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
         data = {
             "sezioni":
                 [{
-                    "id": s.id,
+                    "posizione": s.posizione,
                     "titolo": s.nome,
                     "descrizione": s.descrizione,
                     "contenuto": s.contenuto,
@@ -74,7 +74,7 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
 
         if isinstance(feedback, bool) and feedback is True:
             self.event_notify(event_data=EventData(event_type="INFO",
-                                                   state=ProcessState.Writing,
+                                                   state=ProcessState.Approved,
                                                    message="Redazione delle singole sezioni",
                                                    data=data))
             if len([s for s in sections if s.ricerca]) == 0:
