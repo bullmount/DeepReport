@@ -54,22 +54,25 @@ class EventData:
         dict_data['data'] = json.dumps(self.data, cls=CustomJSONEncoder)
         return dict_data
 
+class FaseSezione(IntEnum):
+    QUERY=0,
+    SEARCH=1,
+    WRITE=2,
+    COMPLETE=3
+
 
 class SectionData(TypedDict):
     sezione_posizione: int
     sezione_nome: str
     search_iterations: int
     search_queries: List[str]
+    fase:FaseSezione
 
-class FaseSezione(IntEnum):
-    QUERY=0,
-    SERACH=1,
-    WRITE=2,
-    COMPLETE=3
 
 def LoadSectionData(state: SectionState, fase:FaseSezione) -> SectionData:
     return SectionData(sezione_posizione=state.section.posizione,
                        sezione_nome=state.section.nome,
+                       fase=fase,
                        search_iterations=state.search_iterations,
                        search_queries= [q.search_query for q in state.search_queries] if state.search_queries else [])
 

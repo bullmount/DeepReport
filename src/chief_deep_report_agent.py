@@ -13,6 +13,7 @@ from agents.human_feedback_agent import HumanFeedbackAgent
 from agents.search_web_agent import SearchWebAgent
 from agents.write_final_sections_agent import WriteFinalSectionsAgent
 from agents.write_section_agent import WriteSectionAgent
+
 from configuration import Configuration, SearchAPI
 from deep_report_state import DeepReportState, DeepReportStateInput, DeepReportStateOutput, SectionState, \
     SectionOutputState
@@ -25,12 +26,12 @@ from utils.lang_graph_runner import LangGraphRunner
 
 class ChiefDeepReportAgent(DeepReportAgentBase):
     def __init__(self,
-                 number_of_queries:int=2,
+                 number_of_queries: int = 2,
                  max_results_per_query: int = 4,
-                 max_search_depth:int = 2,
-                 search_api: str = SearchAPI.GOOGLESEARCH,
+                 max_search_depth: int = 2,
+                 search_api: SearchAPI = SearchAPI.GOOGLESEARCH,
                  domains_search_restriction: List[str] = None,
-                 fetch_full_page:bool = False):
+                 fetch_full_page: bool = False):
         super().__init__()
         task_id = str(int(time.time()))
         config: RunnableConfig = RunnableConfig(
@@ -133,6 +134,9 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
             # human_response = input(interrupt_value['question'])
             # self._runner.provide_user_response(Command(resume=human_response))
 
+    def plan_feedback(self, feedback):
+        self._runner.provide_user_response(Command(resume=feedback))
+
     def approve(self):
         self._runner.provide_user_response(Command(resume="si"))
 
@@ -151,7 +155,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
             event_type="INFO",
             state=ProcessState.Completed,
             message="Esecuzione completata con successo",
-            data={'final_report':result['final_report']}
+            data={'final_report': result['final_report']}
         ))
         if 'final_report' in result and result['final_report']:
             with open("final_report.md", "w", encoding="utf-8") as md_file:
@@ -168,11 +172,12 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
 
     def _on_timeout(self):
         """Callback per il timeout dell'esecuzione"""
-        # self.event_notify(event_data=EventData(
-        #     event_type="WARNING",
-        #     message="L'esecuzione è stata interrotta per timeout",
-        #     data={}
-        # ))
+        self.event_notify(event_data=EventData(
+            event_type="INFO",
+            message="Esecuzione interrotta per tmeout",
+            state=ProcessState.Aborted,
+            data={}
+        ))
         pass
 
     def _on_error(self, error):
@@ -218,7 +223,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
         # state = chain.get_state(self._config).values
         # return state
 
-    def abort(self):
+    def abort(self) -> bool:
         """Forza l'interruzione dell'esecuzione del grafo"""
         if self._runner.abort():
             self.event_notify(event_data=EventData(

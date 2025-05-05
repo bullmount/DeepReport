@@ -3,8 +3,10 @@ from typing import Tuple, List, Dict
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
+from agents.agent_base import DeepReportAgentBase
 from configuration import Configuration
 from deep_report_state import DeepReportState, Section
+from event_notifier import EventData, ProcessState
 from prompts import final_report_writer_instructions
 from search_engines.search_engine_base import SearchEngResult
 from utils.llm_provider import llm_provide
@@ -47,11 +49,11 @@ def remap_sources(sezioni: List[Section]) -> Tuple[List[Section], List[SearchEng
     return sezioni_aggiornate, elenco_unico_fonti
 
 
-class CompileFinalReport:
+class CompileFinalReport(DeepReportAgentBase):
     Name: str = "compile_final_report"
 
     def __init__(self):
-        pass
+        super().__init__()
 
     @classmethod
     def node(cls):
@@ -60,6 +62,10 @@ class CompileFinalReport:
     @time_tracker
     def invoke(self, state: DeepReportState, config: RunnableConfig):
         sections = state.sections
+
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.Reviewing,
+                                               message=f"Verifica del report globale."))
 
         completed_sections = {s.nome: s for s in state.completed_sections}
         for section in sections:

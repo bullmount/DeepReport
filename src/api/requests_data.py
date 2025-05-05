@@ -14,3 +14,7 @@ class ResearchRequestConfig(BaseModel):
 class ResearchRequest(BaseModel):
     topic: str
     config: ResearchRequestConfig
+
+
+class FeedbackRequest(BaseModel):
+    feedback:str

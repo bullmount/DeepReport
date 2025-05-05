@@ -5,8 +5,8 @@ from flask_cors import CORS
 from pydantic import BaseModel, ValidationError
 from dotenv import load_dotenv
 
-from api.requests_data import ResearchRequest
-from api.response_data import ResearchResponse
+from api.requests_data import ResearchRequest, FeedbackRequest
+from api.response_data import ResearchResponse, AbortResponse
 from chief_deep_report_agent import ChiefDeepReportAgent
 
 load_dotenv()
@@ -30,6 +30,63 @@ def hello_world():
     # res = deep_report.invoke("ultimi aggiornamenti su formazione sicurezza lavoro accordo stato regioni")
     return jsonify({"message": "Welcome to DeepReport API!"})
 
+
+@app.route("/abort_report", methods=["POST"])
+def abort_report():
+    if _unique_session.deep_report is None:
+        return jsonify(AbortResponse(
+            success=False,
+            message="Processo non trovato."
+        ).model_dump())
+    try:
+        result:bool = _unique_session.deep_report.abort()
+        if result:
+            return jsonify(ResearchResponse(
+                success=True,
+                message=""
+            ).model_dump())
+        else:
+            return jsonify(ResearchResponse(
+                success=False,
+                message="Operazione di abort non riuscita."
+            ).model_dump())
+    except Exception as e:
+        _unique_session.deep_report = None
+        _unique_session.topic = None
+        return jsonify(ResearchResponse(
+            success=False,
+            message=f"Errore durante l'operazione di abort: {e}"
+        ).model_dump())
+
+
+@app.route("/feedback_plan", methods=["POST"])
+def feedback_plan():
+    if _unique_session.deep_report is None:
+        return jsonify(ResearchResponse(
+            success=False,
+            message="Processo non trovato."
+        ).model_dump())
+
+    try:
+        try:
+            data = FeedbackRequest(**request.json)
+        except ValidationError as e:
+            return jsonify({
+                "success": False,
+                "message": f"Errore di validazione: {e.errors()}"
+            }), 400
+        _unique_session.deep_report.plan_feedback(data.feedback)
+        return jsonify(ResearchResponse(
+            success=True,
+            message=""
+        ).model_dump())
+    except Exception as e:
+        _unique_session.deep_report = None
+        _unique_session.topic = None
+        return jsonify(ResearchResponse(
+            success=False,
+            message=f"Errore durante il feedback: {e}"
+        ).model_dump())
 
 @app.route("/approve_plan", methods=["POST"])
 def approve_plan():
@@ -80,7 +137,7 @@ def deep_research():
             number_of_queries=data.config.number_of_queries,
             max_search_depth=data.config.max_search_depth,
             max_results_per_query=data.config.max_results_per_query,
-            search_api=data.config.search_api.value,
+            search_api=data.config.search_api,
             fetch_full_page=data.config.fetch_full_page
         )
         _unique_session.deep_report.invoke(_unique_session.topic)

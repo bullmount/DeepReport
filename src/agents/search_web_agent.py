@@ -24,7 +24,7 @@ class SearchWebAgent(DeepReportAgentBase):
         self.event_notify(event_data=EventData(event_type="INFO",
                                                state=ProcessState.WritingSection,
                                                message=f"Ricerca contenuti web",
-                                               data=dict(LoadSectionData(state, FaseSezione.SERACH))))
+                                               data=dict(LoadSectionData(state, FaseSezione.SEARCH))))
 
         search_queries = state.search_queries
         prev_web_research_results = sum(state.web_research_results, [])

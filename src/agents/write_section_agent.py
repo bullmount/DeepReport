@@ -32,7 +32,7 @@ class WriteSectionAgent(DeepReportAgentBase):
     def notify_completion(self, state):
         self.event_notify(event_data=EventData(event_type="INFO",
                                                state=ProcessState.WritingSection,
-                                               message="Scrittura della sezione",
+                                               message="Sezione completata",
                                                data=dict(LoadSectionData(state, FaseSezione.COMPLETE))))
 
     @time_tracker

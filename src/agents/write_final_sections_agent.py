@@ -3,19 +3,21 @@ from typing import Dict
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 
+from agents.agent_base import DeepReportAgentBase
 from configuration import Configuration
 from deep_report_state import SectionState
+from event_notifier import EventData, ProcessState, LoadSectionData, FaseSezione
 from prompts import final_section_writer_instructions
 from utils.llm_provider import llm_provide
 from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value
 
 
-class WriteFinalSectionsAgent:
+class WriteFinalSectionsAgent(DeepReportAgentBase):
     Name: str = "write_final_sections"
 
     def __init__(self):
-        pass
+        super().__init__()
 
     @classmethod
     def node(cls):
@@ -25,7 +27,14 @@ class WriteFinalSectionsAgent:
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         configurable = Configuration.from_runnable_config(config)
 
-        #TODO: DISTINGUERE PER TIPO SEZIONE
+
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.WritingSection,
+                                               message="Scrittura della sezione",
+                                               data=dict(LoadSectionData(state, FaseSezione.WRITE))))
+
+
+        #todo: fare prompt specifico per tipo sezione
 
         topic = state.topic
         section = state.section
@@ -44,4 +53,10 @@ class WriteFinalSectionsAgent:
                                                HumanMessage(
                                                    content="Genera una sezione del report basata sulle fonti fornite.")])
         section.contenuto = section_content.content
+
+        self.event_notify(event_data=EventData(event_type="INFO",
+                                               state=ProcessState.WritingSection,
+                                               message="Sezione completata",
+                                               data=dict(LoadSectionData(state, FaseSezione.COMPLETE))))
+
         return {"completed_sections": [section]}

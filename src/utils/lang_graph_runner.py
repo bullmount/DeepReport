@@ -52,11 +52,13 @@ class LangGraphRunner:
 
     def register_state_change_callback(self, callback: Callable[[str, Any], None]):
         """Registra un callback per i cambiamenti di stato dell'esecuzione"""
-        self._on_state_change_callback = callback
+        if self._state != GraphRunningState.ABORTED:
+            self._on_state_change_callback = callback
 
     def register_completion_callback(self, callback: Callable[[Any], None]):
         """Registra un callback per il completamento dell'esecuzione"""
-        self._on_completion_callback = callback
+        if self._state != GraphRunningState.ABORTED:
+            self._on_completion_callback = callback
 
     def register_abort_callback(self, callback: Callable[[], None]):
         """Registra un callback per l'abort dell'esecuzione"""
@@ -68,7 +70,8 @@ class LangGraphRunner:
 
     def register_timeout_callback(self, callback: Callable[[], None]):
         """Registra un callback per gli eventi di timeout"""
-        self._on_timeout_callback = callback
+        if self._state != GraphRunningState.ABORTED:
+            self._on_timeout_callback = callback
 
     def _set_state(self, new_state: str):
         """Imposta lo stato interno e notifica il callback se registrato"""
@@ -394,6 +397,7 @@ class LangGraphRunner:
             self._should_abort = True
             self._abort_event.set()
             self._force_exit_thread()
+            self._set_state(GraphRunningState.ABORTED)
             return True
         return False
 
