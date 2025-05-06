@@ -15,7 +15,6 @@ from utils import traccia_tempo
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
-from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value, estrai_sezioni_markdown_e_indice_assegnata
 
 
@@ -49,7 +48,6 @@ class WriteSectionAgent(DeepReportAgentBase):
 
         most_recent_web_research = state.web_research_results[-1]
 
-        # todo: se most_recent_web_research è vuoto
         if not most_recent_web_research:
             if state.search_iterations >= configurable.max_search_depth:
                 for source in section.sources:
@@ -150,13 +148,8 @@ class WriteSectionAgent(DeepReportAgentBase):
                                            HumanMessage(
                                                content="Arricchisci il contenuto della sezione con le nuove fonti ed esprimi un giudizio se continuare la ricerca oppure passare il nuovo contenuto generato.")],
                                           response_format=SectionReview.model_json_schema())
-            try:
-                section_review: SectionReview = parse_model(SectionReview, results.content)
-            except Exception as e:
-                print("ERROR PARSING SECTION REVIEW -----------------")
-                print(results.content)  # todo: remove
-                print("---------------------------- -----------------")
-                raise
+
+            section_review: SectionReview = parse_model(SectionReview, results.content)
 
             section.contenuto = section_review.new_section_content
             if section_review.grade.upper() == "PASS" or state.search_iterations >= configurable.max_search_depth:

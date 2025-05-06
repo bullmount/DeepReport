@@ -20,11 +20,9 @@ from docling.datamodel.base_models import DocumentStream, InputFormat
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.pipeline_options import (AcceleratorDevice, AcceleratorOptions, PdfPipelineOptions)
 import logging
-import traceback
 import fitz
 from readability import Document
 from markdownify import markdownify
-from utils.traccia_tempo import time_tracker
 
 import urllib3
 
@@ -51,7 +49,6 @@ class UrlFetcher:
     max_pdf_size: int = 500 * 1024
 
     @staticmethod
-    @time_tracker
     def _fetch_pdf_fallback(url: str) -> bytes:
         temp_file_path = None
         with UrlFetcher._playwright_lock:
@@ -73,7 +70,6 @@ class UrlFetcher:
                     if temp_file_path and os.path.exists(temp_file_path):
                         os.remove(temp_file_path)
 
-    @time_tracker
     def _extract_pdf_text(self, pdf_bytes: bytes) -> str:
         try:
             buf = BytesIO(pdf_bytes)
@@ -100,7 +96,6 @@ class UrlFetcher:
                 logger.error(f"Errore nel fallback PDF parsing: {str(e)}")
                 return ""
 
-    @time_tracker
     def _extract_html_text(self, url: str) -> str:
         with UrlFetcher._playwright_lock:
             with sync_playwright() as p:
@@ -147,7 +142,6 @@ class UrlFetcher:
                 finally:
                     browser.close()
 
-    @time_tracker
     def _fetch(self,url):
         with UrlFetcher._cache_lock:
             if url in UrlFetcher._shared_cache:
@@ -192,7 +186,6 @@ class UrlFetcher:
             logger.error(f"Errore generico fetch {url}: {str(e)}")
             return url, ""
 
-    @time_tracker
     def fetch_contents(self, urls: List[str]) -> Dict[str, str]:
         contents = {}
         with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:

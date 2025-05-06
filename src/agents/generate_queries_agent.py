@@ -10,7 +10,6 @@ from event_notifier import ProcessState, LoadSectionData, FaseSezione
 from prompts import query_writer_instructions
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
-from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
 
 

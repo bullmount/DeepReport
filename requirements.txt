@@ -27,6 +27,7 @@ requests
 scikit-learn
 selenium
 sentence_transformers
+tavily-python
 urllib3
 uvicorn
 webdriver-manager

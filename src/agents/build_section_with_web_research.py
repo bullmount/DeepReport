@@ -10,8 +10,6 @@ from agents.write_section_agent import WriteSectionAgent
 from deep_report_state import  SectionState, SectionOutputState
 from langchain_core.runnables import RunnableConfig
 
-from utils.traccia_tempo import time_tracker
-
 
 class BuildSectionWithWebResearch(DeepReportAgentBase):
     Name = "build_section_with_web_research"

@@ -1,13 +1,10 @@
 from dataclasses import dataclass, field
-from typing_extensions import Annotated
 import operator
 from pydantic import BaseModel, Field
 from typing import Annotated, List, TypedDict, Literal, Optional
 
 from search_engines.search_engine_base import SearchEngResult
 
-
-# todo: spostare
 
 class SearchQuery(BaseModel):
     search_query: str = Field(None, description="Query per la ricerca web.")
@@ -20,8 +17,8 @@ class Queries(BaseModel):
 
 
 class Section(BaseModel):
-    posizione:int = Field(
-        description="posizione della sezione a partire da 1.",default=1
+    posizione: int = Field(
+        description="posizione della sezione a partire da 1.", default=1
     )
     nome: str = Field(
         description="Nome per questa sezione del report.",
@@ -72,6 +69,7 @@ class SectionReview(BaseModel):
 
 
 # -------------------------------------------------------------------------------------
+# Graph States
 
 @dataclass(kw_only=True)
 class DeepReportStateInput():

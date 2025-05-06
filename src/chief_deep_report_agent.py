@@ -8,15 +8,12 @@ from agents.agent_base import DeepReportAgentBase, EventData
 from agents.build_section_with_web_research import BuildSectionWithWebResearch
 from agents.compile_final_report import CompileFinalReport
 from agents.gather_completed_sections_agent import GatherCompletedSections
-from agents.generate_queries_agent import GenerateQueriesAgent
 from agents.human_feedback_agent import HumanFeedbackAgent
-from agents.search_web_agent import SearchWebAgent
 from agents.write_final_sections_agent import WriteFinalSectionsAgent
-from agents.write_section_agent import WriteSectionAgent
 
 from configuration import Configuration, SearchAPI
-from deep_report_state import DeepReportState, DeepReportStateInput, DeepReportStateOutput, SectionState, \
-    SectionOutputState
+from deep_report_state import (DeepReportState, DeepReportStateInput, DeepReportStateOutput,
+                               SectionState, SectionOutputState)
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.types import Command, Send
 
@@ -47,30 +44,17 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                 "sites_search_restriction": domains_search_restriction,
                 "fetch_full_page": fetch_full_page,
 
+                # uso modello proprietario
                 "planner_provider": "my_provider",
                 "planner_model": "gpt-4o-mini",
                 "writer_provider": "my_provider",
-                "writer_model": "gpt-4o-mini"
+                "writer_model": "gpt-4o-mini",
 
+                # uso di openrouter
                 # "planner_provider": "openrouter",
-                # # # # "planner_model": "google/gemini-2.0-flash-exp:free",
-                # # # # "planner_model":"google/gemma-3-27b-it:free"
                 # "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
-                # # "planner_model": "qwen/qwen3-30b-a3b:free",
-
                 # "writer_provider": "openrouter",
-                # # # # "writer_model": "google/gemini-2.0-flash-exp:free",
-                # # # # "writer_model":"google/gemma-3-27b-it:free"
                 # "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
-                # # "writer_model": "qwen/qwen3-30b-a3b:free",
-
-                #         "model_name": "mistralai/mistral-small-24b-instruct-2501:free",
-                #
-                #         # sistema interno privato ----------
-                #         # "llm_provider": "my_provider",
-                #         # "model_name": "gpt-4o",
-                #         # "model_name": "gpt-4o-mini",
-                #
             }
         )
         self._config = config
@@ -98,7 +82,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
     def _init_research_team(self) -> StateGraph:
         workflow = StateGraph(DeepReportState,
                               input=DeepReportStateInput,
-                              # output=DeepReportStateOutput,   #todo: restore
+                              # output=DeepReportStateOutput,   #todo: metteree in output solo valori che servono
                               config_schema=Configuration)
 
         # workflow nodes
@@ -130,7 +114,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                                                    state=ProcessState.WaitingForApproval,
                                                    message=interrupt_value['question'],
                                                    data=interrupt_value['sections']))
-            # per debug con input su console
+            # per solo debug: input su console
             # human_response = input(interrupt_value['question'])
             # self._runner.provide_user_response(Command(resume=human_response))
 
@@ -142,11 +126,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
 
     def _on_state_change(self, new_state, current_state):
         """Callback per i cambiamenti di stato"""
-        # self.event_notify(event_data=EventData(
-        #     event_type="INFO",
-        #     message=f"Stato del runner: {new_state}",
-        #     data={}
-        # ))
+        # per ora non usato
         pass
 
     def _on_completion(self, result):
@@ -157,8 +137,12 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
             message="Esecuzione completata con successo",
             data={'final_report': result['final_report']}
         ))
+
+        # salvataggio report finale
         if 'final_report' in result and result['final_report']:
-            with open("final_report.md", "w", encoding="utf-8") as md_file:
+            timestamp = time.strftime("%Y_%H%M")
+            filename = f"final_report_{timestamp}.md"
+            with open(filename, "w", encoding="utf-8") as md_file:
                 md_file.write(result['final_report'])
 
     def _on_abort(self):
@@ -195,23 +179,19 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
         chain = research_team.compile(checkpointer=memory)
         initial_state = DeepReportState(topic=topic, sections=[], completed_sections=[])
 
-        # chain.get_graph().draw_mermaid_png(output_file_path="chief_deep_report_agent.png")
+        chain.get_graph().draw_mermaid_png(output_file_path="chief_deep_report_agent.png")
 
-        # todo: remove
-        # res = chain.invoke(initial_state, config=self._config)
-
-        current_input = initial_state
         self.event_notify(event_data=EventData(event_type="INFO", state=ProcessState.Started,
                                                message="start DeepReport Team agents", data={}))
 
         # uso con  LangGraphRunner() -----------------------------
-        return self._runner.run(chain, initial_state, self._config, timeout=60 * 15, blocking=False)
+        return self._runner.run(chain, initial_state, self._config, timeout=60 * 30, blocking=False)
         # --------------------------------------------------------
 
         # uso senza LangGraphRunner ----------------------------------------------
         # while True:
         #     for event in chain.stream(current_input, self._config, stream_mode="updates"):
-        #         print(f"EVENT: {event}")  # todo: remove
+        #         print(f"EVENT: {event}")
         #         if '__interrupt__' in event:
         #             interrupt_value = event['__interrupt__'][0].value
         #             if '__interrupt__' in event:

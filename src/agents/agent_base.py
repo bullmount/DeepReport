@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 
 
 from event_notifier import EventNotifier,  EventData
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DeepReportAgentBase(ABC):
@@ -12,9 +15,8 @@ class DeepReportAgentBase(ABC):
 
     def event_notify(self, event_data: EventData) -> None:
         try:
-            json_data = event_data.to_json()
-            print(json_data)  # todo: remove
+            # json_data = event_data.to_json()
+            # print(json_data)
             self._event_notifier.send_message(event_data)
         except Exception as e:
-            #todo: log notifica non inviata
-            pass
+            logger.error(f"Errore durante la notifica dell'evento: {e}")

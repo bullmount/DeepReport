@@ -2,7 +2,7 @@ from typing import Tuple, List, Dict
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
-
+import time
 from agents.agent_base import DeepReportAgentBase
 from configuration import Configuration
 from deep_report_state import DeepReportState, Section
@@ -11,14 +11,12 @@ from prompts import final_report_writer_instructions
 from search_engines.search_engine_base import SearchEngResult
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
-from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value
 import re
 
 
 def remap_sources(sezioni: List[Section]) -> Tuple[List[Section], List[SearchEngResult]]:
     url_to_new_number: Dict[str, int] = {}
-    nuova_lista_fonti: List[str] = []
     prossimo_numero = 1
 
     elenco_unico_fonti: List[SearchEngResult] = []
@@ -28,7 +26,7 @@ def remap_sources(sezioni: List[Section]) -> Tuple[List[Section], List[SearchEng
         for fonte in sezione.sources:
             if fonte['url'] not in url_to_new_number:
                 url_to_new_number[fonte['url']] = prossimo_numero
-                nuova_lista_fonti.append(fonte['url'])
+                # nuova_lista_fonti.append(fonte['url'])
                 x = fonte.copy()
                 x['num_source'] = prossimo_numero
                 elenco_unico_fonti.append(x)
@@ -48,6 +46,24 @@ def remap_sources(sezioni: List[Section]) -> Tuple[List[Section], List[SearchEng
 
     return sezioni_aggiornate, elenco_unico_fonti
 
+
+def linkify_citations(text: str, sources: List[SearchEngResult]) -> str:
+    source_map = {src["num_source"]: src for src in sources if src.get("num_source") is not None and src.get("url")}
+
+    def replacer(match):
+        num_str = match.group(1)
+        try:
+            num = int(num_str)
+            source = source_map.get(num)
+            if source:
+                url = source["url"]
+                return f'<a href="{url}" target="_blank">[{num}]</a>'
+        except ValueError:
+            pass  # nel caso improbabile che non sia un intero
+        return match.group(0)  # ritorna l'originale [n] se non c'è sostituzione
+
+    # Regex che cerca pattern come [1], [12], ecc.
+    return re.sub(r'\[(\d+)\]', replacer, text)
 
 class CompileFinalReport(DeepReportAgentBase):
     Name: str = "compile_final_report"
@@ -89,10 +105,15 @@ class CompileFinalReport(DeepReportAgentBase):
                                                    content="Riscrivi il report completo secondo le istruzioni date.")])
 
         # aggiunta in fondo delle fonti numerate
-        final_report = section_content.content
+        today_date = time.strftime("%d/%m/%Y")
+        final_report = f"> #### Topic  *(report date: {today_date})*\n> *{state.topic}*\n\n----\n\n{section_content.content}"
+
+        final_report_con_citazioni_linked = linkify_citations(final_report,elenco_fonti_totale)
+
+
         if len(elenco_fonti_totale) > 0:
             sources_formatter = SourcesFormatter()
             riepiloghi = sources_formatter.format_riepilogo(elenco_fonti_totale)
-            final_report = final_report + "\n\n## FONTI:\n" + riepiloghi
+            final_report_con_citazioni_linked = final_report_con_citazioni_linked + "\n\n## FONTI:\n" + riepiloghi
 
-        return {"final_report": final_report}
+        return {"final_report": final_report_con_citazioni_linked}

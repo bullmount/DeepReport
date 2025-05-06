@@ -1,8 +1,6 @@
-from pathlib import Path
 from typing import Dict
 from langchain_core.runnables import RunnableConfig
-from deep_report_state import DeepReportState, Sections
-from utils.traccia_tempo import time_tracker
+from deep_report_state import DeepReportState
 from utils.utils import format_sections
 
 
@@ -30,11 +28,11 @@ class GatherCompletedSections():
                 section.sources = completed_sections_per_nome[section.nome].sources
             completed_sections.append(section)
 
-        # todo: remove -------------------
-        sections = Sections(sezioni=completed_sections)
-        output_path = Path("completed_sections.json")
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(sections.model_dump_json(indent=4))
+        # --------------------------------
+        # sections = Sections(sezioni=completed_sections)
+        # output_path = Path("completed_sections.json")
+        # with open(output_path, "w", encoding="utf-8") as f:
+        #     f.write(sections.model_dump_json(indent=4))
         # --------------------------------
 
         completed_report_sections = format_sections(completed_sections)

@@ -9,7 +9,6 @@ from deep_report_state import SectionState
 from event_notifier import EventData, ProcessState, LoadSectionData, FaseSezione
 from prompts import final_section_writer_instructions
 from utils.llm_provider import llm_provide
-from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value
 
 
@@ -34,7 +33,7 @@ class WriteFinalSectionsAgent(DeepReportAgentBase):
                                                data=dict(LoadSectionData(state, FaseSezione.WRITE))))
 
 
-        #todo: fare prompt specifico per tipo sezione
+        #todo: migliorare usando prompt specifici per tipo sezione
 
         topic = state.topic
         section = state.section
@@ -51,7 +50,7 @@ class WriteFinalSectionsAgent(DeepReportAgentBase):
 
         section_content = writer_model.invoke([SystemMessage(content=system_instructions),
                                                HumanMessage(
-                                                   content="Genera una sezione del report basata sulle fonti fornite.")])
+                                                   content="Genera una sezione del report basata sui contenuti forniti.")])
         section.contenuto = section_content.content
 
         self.event_notify(event_data=EventData(event_type="INFO",

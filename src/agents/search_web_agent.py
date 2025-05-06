@@ -6,7 +6,6 @@ from configuration import Configuration
 from deep_report_state import SectionState
 from event_notifier import ProcessState, LoadSectionData, FaseSezione
 from search_system import SearchSystem
-from utils.traccia_tempo import time_tracker
 
 
 class SearchWebAgent(DeepReportAgentBase):
@@ -44,12 +43,6 @@ class SearchWebAgent(DeepReportAgentBase):
             last_num_source += 1
             res['num_source'] = last_num_source
 
-        # todo: remove
-        # sources_formatter = SourcesFormatter()
-        # source_str = sources_formatter.format_sources(sources,
-        #                                               include_raw_content=True,
-        #                                               max_tokens_per_source=3000,
-        #                                               numbering=False)
         return {
             "search_iterations": state.search_iterations + 1,
             "previous_search_queries": search_queries,

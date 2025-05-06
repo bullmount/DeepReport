@@ -22,9 +22,9 @@ DEFAULT_REPORT_STRUCTURE = """Usa questa struttura per creare un report sull'arg
 
 class SearchAPI(Enum):
     TAVILY = "tavily"
-    ARXIV = "arxiv"
-    PUBMED = "pubmed"
-    LINKUP = "linkup"
+    # ARXIV = "arxiv"
+    # PUBMED = "pubmed"
+    # LINKUP = "linkup"
     DUCKDUCKGO = "duckduckgo"
     GOOGLESEARCH = "googlesearch"
 

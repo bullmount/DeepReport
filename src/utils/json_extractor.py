@@ -51,18 +51,12 @@ def parse_model(model_class: Type[T], json_string_original: str) -> T:
     json_string = _extract_valid_json(json_string) # json_string.replace("```json", "").replace("```","")
     try:
         # Pydantic v2
-        queries_obj = model_class.model_validate_json(json_string)
+        obj = model_class.model_validate_json(json_string)
     except :
         # Pydantic v1
-        try:
-            queries_obj = model_class.parse_raw(json_string)
-        except:
-            print("Errore di decodifica JSON----------------")
-            print(json_string)
-            print("----------------------------------------")
-            raise #todo: remove
+        obj = model_class.parse_raw(json_string)
 
-    return queries_obj
+    return obj
 
 
 

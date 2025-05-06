@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel
 
 from configuration import SearchAPI
@@ -9,6 +11,7 @@ class ResearchRequestConfig(BaseModel):
     max_results_per_query:int
     search_api:SearchAPI
     fetch_full_page:bool
+    sites_search_restriction:List[str]
 
 
 class ResearchRequest(BaseModel):

@@ -42,7 +42,7 @@ class HumanFeedbackAgent(DeepReportAgentBase):
 {sections_str}
 
 Il piano del rapporto soddisfa le tue esigenze?
-Inserisci 'true' per approvare il piano del rapporto.
+Inserisci 'si' per approvare il piano del rapporto.
 Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
 
         data = {
@@ -59,7 +59,7 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
 
         feedback = interrupt({"question": interrupt_message, "sections": data})
 
-        # todo: remove -------------------------------
+        # --------------------------------------
         # file_path = Path("completed_sections.json")
         # if file_path.exists():
         #     data = file_path.read_text(encoding="utf-8")
@@ -75,7 +75,7 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
         if isinstance(feedback, bool) and feedback is True:
             self.event_notify(event_data=EventData(event_type="INFO",
                                                    state=ProcessState.Approved,
-                                                   message="Redazione delle singole sezioni",
+                                                   message="Piano approvato, redazione delle singole sezioni",
                                                    data=data))
             if len([s for s in sections if s.ricerca]) == 0:
                 return Command(goto=GatherCompletedSections.Name,

@@ -13,7 +13,6 @@ from search_system import SearchSystem
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
-from utils.traccia_tempo import time_tracker
 from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
 from pathlib import Path
 
@@ -40,7 +39,7 @@ class ReportPlannerAgent(DeepReportAgentBase):
         search_sys = SearchSystem(configurable.search_api)
         sources_formatter = SourcesFormatter()
 
-        # todo: remove -------------------------------------
+        # --------------------------------------------------
         # file_path_1 = Path("sections.json")
         # file_path_2 = Path("queries.json")
         # if not feedback and file_path_1.exists() and file_path_2.exists():
@@ -116,6 +115,7 @@ class ReportPlannerAgent(DeepReportAgentBase):
                                                       max_filtered_results=configurable.max_results_per_query,
                                                       max_results_per_query=configurable.max_results_per_query,
                                                       include_raw_content=configurable.fetch_full_page,
+                                                      sites=configurable.sites_search_restriction,
                                                       exclude_sources=state.bad_search_results)
 
         source_str = sources_formatter.format_sources(sources,
@@ -169,14 +169,14 @@ class ReportPlannerAgent(DeepReportAgentBase):
             section_pos = section_pos + 1
             s.posizione = section_pos
 
-        # todo: remove -------
-        output_path = Path("sections.json")
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(sections.model_dump_json(indent=4))
-
-        output_path = Path("queries.json")
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(queries.model_dump_json(indent=4))
+        # --------------------
+        # output_path = Path("sections.json")
+        # with open(output_path, "w", encoding="utf-8") as f:
+        #     f.write(sections.model_dump_json(indent=4))
+        #
+        # output_path = Path("queries.json")
+        # with open(output_path, "w", encoding="utf-8") as f:
+        #     f.write(queries.model_dump_json(indent=4))
         # --------------------
 
         return {"queries": queries, "themes": sections.tematiche,

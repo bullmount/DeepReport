@@ -22,9 +22,8 @@ import torch
 from threading import Lock
 from typing import ClassVar, Dict
 
-from utils.traccia_tempo import time_tracker
+from search_engines.search_engine_tavily import TavilySearchEngine
 from utils.url_fetcher import UrlFetcher
-from utils.url_list_appender import UrlListAppender
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +41,6 @@ class SSLIgnoreAdapter(HTTPAdapter):
 
 class SearchSystem:
     _embedding_lock: ClassVar[Lock] = threading.Lock()
-    # _url_list_appender = UrlListAppender("urls.json") #todo: remove
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     _embedding_model: ClassVar[SentenceTransformer] = SentenceTransformer(
@@ -88,7 +86,6 @@ class SearchSystem:
                 r['query'] = query
                 r['search_engine'] = self._search_api.value
                 r['full_content'] = ""
-                # self._url_list_appender.append_url(r['url'])  #todo: remove
             all_results.extend(filtered_results)
 
         if include_raw_content:
@@ -123,8 +120,8 @@ class SearchSystem:
             return GoogleSearchEngine()
         elif self._search_api == SearchAPI.DUCKDUCKGO:
             return DuckDuckGoSearchEngine()
-        # elif self._search_api == SearchAPI.TAVILY:  # todo:
-        #     return TavilySearchEngine()
+        elif self._search_api == SearchAPI.TAVILY:
+            return TavilySearchEngine()
         else:
             raise ValueError("Invalid search engine name")
 

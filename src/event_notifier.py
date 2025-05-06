@@ -5,7 +5,6 @@ import logging
 from datetime import datetime
 import json
 from enum import IntEnum
-import time
 
 from deep_report_state import SectionState
 
@@ -77,12 +76,6 @@ def LoadSectionData(state: SectionState, fase:FaseSezione) -> SectionData:
                        search_queries= [q.search_query for q in state.search_queries] if state.search_queries else [])
 
 
-# @dataclass
-# class EventNotifierMessage:
-#     user: str
-#     text: str
-
-
 class EventNotifier:
     def __init__(self, base_url: str = "http://localhost:5285"):
         self.base_url = base_url.rstrip('/')
@@ -91,7 +84,6 @@ class EventNotifier:
 
     def send_message(self, message: EventData) -> Optional[Dict[Any, Any]]:
         try:
-            # print("send message")
             response = requests.post(url=self.endpoint, json=message.to_dict())
             response.raise_for_status()
             return response.json()
@@ -109,28 +101,3 @@ class EventNotifier:
             return False
 
 
-if __name__ == "__main__":
-    # Configurazione logging
-    logging.basicConfig(level=logging.INFO)
-
-    # Creazione client
-    client = EventNotifier()
-
-    data = {"sezioni": [
-        {"titolo": "titolo1", "descrizione": "descr 1", "richiede_ricerca": True},
-        {"titolo": "titolo2", "descrizione": "descr 2", "richiede_ricerca": False},
-    ]}
-
-    # Verifica disponibilità server
-    if client.is_server_available():
-        message = EventData(event_type="INFO", message="ciao", state=ProcessState.Started, data=data)
-        response = client.send_message(message)
-        time.sleep(1)
-        # Creazione e invio messaggio
-        message = EventData(event_type="INFO", message="ciao", state=ProcessState.WaitingForApproval, data=data)
-        response = client.send_message(message)
-
-        if response:
-            print("✅ Risposta dal server Blazor:", response)
-    else:
-        print("❌ Server non raggiungibile")

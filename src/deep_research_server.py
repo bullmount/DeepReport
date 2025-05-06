@@ -21,6 +21,7 @@ class SessionState:
         self.topic: Optional[str] = None
 
 
+# si gestisce una sola sessione
 _unique_session = SessionState()
 
 
@@ -39,7 +40,7 @@ def abort_report():
             message="Processo non trovato."
         ).model_dump())
     try:
-        result:bool = _unique_session.deep_report.abort()
+        result: bool = _unique_session.deep_report.abort()
         if result:
             return jsonify(ResearchResponse(
                 success=True,
@@ -88,6 +89,7 @@ def feedback_plan():
             message=f"Errore durante il feedback: {e}"
         ).model_dump())
 
+
 @app.route("/approve_plan", methods=["POST"])
 def approve_plan():
     if _unique_session.deep_report is None:
@@ -97,17 +99,12 @@ def approve_plan():
         ).model_dump())
     try:
         _unique_session.deep_report.approve()
-        return jsonify(ResearchResponse(
-            success=True,
-            message=""
-        ).model_dump())
+        return jsonify(ResearchResponse(success=True, message="").model_dump())
     except Exception as e:
         _unique_session.deep_report = None
         _unique_session.topic = None
-        return jsonify(ResearchResponse(
-            success=False,
-            message=f"Errore durante l'avvio della ricerca: {e}"
-        ).model_dump())
+        return jsonify(
+            ResearchResponse(success=False, message=f"Errore durante l'avvio della ricerca: {e}").model_dump())
 
 
 @app.route("/deepresearch", methods=["POST"])
@@ -138,7 +135,8 @@ def deep_research():
             max_search_depth=data.config.max_search_depth,
             max_results_per_query=data.config.max_results_per_query,
             search_api=data.config.search_api,
-            fetch_full_page=data.config.fetch_full_page
+            fetch_full_page=data.config.fetch_full_page,
+            domains_search_restriction=data.config.sites_search_restriction
         )
         _unique_session.deep_report.invoke(_unique_session.topic)
 
