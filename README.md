@@ -1,128 +1,126 @@
-# Deep Research Italiano  
-  
-Sistema di deep-research automatizzata per la lingua italiana, con architettura back-end modulare (basata su LangGraph) e front-end interattivo sviluppato in Blazor. Ispirato a [Open Deep Research di LangChain](https://github.com/langchain-ai/open_deep_research), ma profondamente rivisto per ottimizzare la ricerca, la generazione e la revisione di report complessi in italiano con citazione delle fonti per una maggiore trasparenza.
-  
-![Schema del sistema di deep research](Ita_deep_research.png)
+# Deep Research Italiano
 
-## Indice  
-  
-- [Descrizione](#descrizione)  
-- [Caratteristiche principali](#caratteristiche-principali)  
-- [Architettura](#architettura)  
-- [Installazione](#installazione)  
-- [Utilizzo](#utilizzo)  
-- [Ispirazione e differenze](#ispirazione-e-differenze)  
-- [Roadmap](#roadmap)  
-- [Contribuire](#contribuire)  
-- [Licenza](#licenza)  
-  
-  
-## Descrizione  
-  
-Questo progetto offre una piattaforma di ricerca automatizzata per la lingua italiana, suddivisa in un back-end e un front-end user-friendly. Il sistema è stato progettato per sperimentare l'impiego di sistemi AI per la  creazione di report documentati, strutturati e facilmente verificabili.  
-  
-Il back-end, sviluppato con [LangGraph](https://github.com/langchain-ai/langgraph), si occupa della pianificazione, ricerca, generazione e revisione dei contenuti. Il front-end, realizzato in [Blazor](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor), consente agli utenti di seguire in tempo reale l’avanzamento del processo, intervenire con feedback e gestire l’intero workflow in modo intuitivo.  
-  
-## Caratteristiche principali  
-  
-- **Pianificazione intelligente**: Il planner effettua una ricerca preliminare per determinare le query più efficaci, ottimizzando la ricerca per il planning delle sezioni del report.  
-- **Human-in-the-loop**: Supporto completo al feedback umano, con possibilità di approvare il piano delle sezioni o fornire un feedback per revisionarlo.  
-- **Ricerca senza API key**: Utilizzo di sistemi di ricerca che non richiedono API key, garantendo facilità di avvio e costi ridotti.  Può essere comunque esteso con servizi a pagamento.
-- **Prompt specifici**: Prompt completamente rivisti per la stesura e la revisione delle sezioni, con strategie per evitare sovrapposizioni tra i writer e migliorare la coerenza del report.  
-- **Citazioni trasparenti**: Generazione di contenuti con citazioni numerate (ottenute con accorpamento delle fonti acquisite per ogni sezione), garantendo tracciabilità e trasparenza delle fonti.
-- **Revisione finale**: Fase dedicata alla revisione globale del report per garantire coerenza, completezza e qualità.  
-- **Cache per scraping**: Sistema di caching per ottimizzare lo scraping dei contenuti e ridurre i tempi di risposta.  
-- **Supporto PDF**: Lettura e analisi di contenuti anche in formato PDF.  
-- **Estendibilità LLM**: Possibilità di integrare modelli linguistici proprietari o di terze parti (attualmente supportato OpenRouter).  
-- **Front-end Blazor**: Interfaccia che mostra in tempo reale l’evoluzione del report e consente l’interazione continua dell’utente.  
-- **Controllo processo**: Possibilità di interrompere il processo direttamente dal front-end.  
-  
-  
-## Architettura  
-  
-| Componente | Tecnologia | Descrizione |  
-| :-- | :-- | :-- |  
-| Back-end | LangGraph (Python) | Gestione workflow, pianificazione, scraping, generazione e revisione testi. |  
-| Front-end | Blazor (.NET) | Interfaccia utente reattiva, feedback, monitoraggio e controllo processo. |  
-| LLM | OpenRouter | Generazione e revisione dei contenuti tramite LLM estendibili. |  
-| Ricerca & Cache| Custom | Ottimizzazione scraping e gestione PDF. |  
+Automated deep-research system for the Italian language, with a modular back-end architecture (based on LangGraph) and interactive front-end developed in Blazor. Inspired by [LangChain's Open Deep Research](https://github.com/langchain-ai/open_deep_research), but thoroughly revised to optimize research, generation, and revision of complex reports in Italian with source citations for greater transparency.
 
-## Come funziona
+![Deep research system diagram](Ita_deep_research.png)
 
- 1.  **Input e Pianificazione**: L’utente inserisce il tema di ricerca. Il planner effettua una ricerca preventiva per determinare le query più utili e sviluppare una bozza del piano delle sezioni.
+## Table of Contents
 
-2.  **Revisione Umana**: Il piano viene presentato all’utente, che può esprimere un feedback per revisionarlo o approvarlo.
-    
-3.  **Ricerca e Generazione**: Il sistema esegue in parallelo per ogni sezione ricerche web, aggrega e cache le fonti, e genera i contenuti usando prompt distinti per la prima stesura e le revisioni successive.
-    
-4.  **Citazioni e Fonti**: Ogni sezione include citazioni rinumerate, con accorpamento delle fonti per chiarezza e verificabilità.
-    
-5.  **Revisione Finale**: Il report completo viene sottoposto a una revisione globale automatica e, se necessario, manuale.
-    
-6.  **Visualizzazione Live**: Il front-end mostra in tempo reale l’avanzamento, consente feedback e permette di abortire il processo in qualsiasi momento.
+- [Description](#description)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [How It Works](#how-it-works)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Inspiration and Differences](#inspiration-and-differences)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
- 
-  
-## Installazione  
-  
-> **Nota:** Le istruzioni dettagliate saranno presto disponibili.  
-> È richiesta una configurazione Python per il back-end e un ambiente .NET per il front-end.  
-  
-1. Clona il repository:  
-  
-```bash  
-git clone https://github.com/tuo-username/deep-research-italiano.git```  
-  ```
-  
-## Utilizzo  
-  
-- Configurare la api key per `openrouter`.  
-- Avvia il back-end (deep_research_server.py) e il front-end con vs2022.  
-- Accedi all’interfaccia Blazor per:  
-  - Inserire la query di ricerca  
-  - Monitorare in tempo reale la generazione del report  
-  - Fornire feedback e revisionare i contenuti  
-  - Interrompere o modificare il processo quando necessario  
-- Visualizza e scarica il report finale con tutte le citazioni organizzate.  
 
-**Prerequisiti:**
+## Description
 
--   .NET 8+ (per il front-end Blazor)
-    
--   Python 3.10+ (per LangGraph e back-end)
-    
--   Accesso a OpenRouter o proprio endpoint LLM (opzionale)
-  
-  
-## Ispirazione e differenze  
-  
-Il progetto si ispira a [open_deep_research di LangChain](https://github.com/langchain-ai/open_deep_research), ma introduce alcune innovazioni:  
-  
-- Ottimizzazione specifica per la lingua italiana  
-- Prompt completamente rivisti  
-- Workflow di pianificazione e revisione modificati  
-- Front-end interattivo e moderno  
-- Gestione avanzata delle citazioni e delle fonti  
-- Supporto nativo a PDF e caching dei contenuti  
-  
-  
-## Roadmap  
-  
-- Integrazione di nuovi sistemi di ricerca 
-- Versione specifica per l'ambito legale
-- Miglioramento UI/UX Blazor
-- Estensione a LLM on-premise  
-  
-    
-## Contribuire  
-  
-Contributi, suggerimenti e segnalazioni sono benvenuti!  
-  
-## Licenza  
-  
-Questo progetto è distribuito secondo la licenza MIT.  
-Vedi il file `LICENSE` per i dettagli.  
-  
----  
-  
-*Deep Research Italiano: la ricerca automatizzata, trasparente e collaborativa per la lingua italiana.*
+This project offers an automated research platform for the Italian language, divided into a back-end and a user-friendly front-end. The system has been designed to experiment with the use of AI systems for creating documented, structured, and easily verifiable reports.
+
+The back-end, developed with [LangGraph](https://github.com/langchain-ai/langgraph), handles planning, research, generation, and content revision. The front-end, built with [Blazor](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor), allows users to follow the process progress in real-time, provide feedback, and manage the entire workflow intuitively.
+
+## Key Features
+
+- **Intelligent Planning**: The planner conducts preliminary research to determine the most effective queries, optimizing research for report section planning.
+- **Human-in-the-loop**: Complete support for human feedback, with the ability to approve the section plan or provide feedback for revision.
+- **No API Key Research**: Uses search systems that don't require API keys, ensuring easy startup and reduced costs. Can be extended with paid services.
+- **Specific Prompts**: Completely revised prompts for drafting and reviewing sections, with strategies to avoid overlaps between writers and improve report coherence.
+- **Transparent Citations**: Content generation with numbered citations (obtained by consolidating sources acquired for each section), ensuring traceability and transparency of sources.
+- **Final Review**: Dedicated phase for global report review to ensure coherence, completeness, and quality.
+- **Scraping Cache**: Caching system to optimize content scraping and reduce response times.
+- **PDF Support**: Reading and analysis of content in PDF format as well.
+- **LLM Extensibility**: Ability to integrate proprietary or third-party language models (currently supporting OpenRouter).
+- **Blazor Front-end**: Interface that shows the report's evolution in real-time and allows continuous user interaction.
+- **Process Control**: Ability to interrupt the process directly from the front-end.
+
+
+## Architecture
+
+| Component | Technology | Description |
+| :-- | :-- | :-- |
+| Back-end | LangGraph (Python) | Workflow management, planning, scraping, text generation and revision. |
+| Front-end | Blazor (.NET) | Reactive user interface, feedback, monitoring and process control. |
+| LLM | OpenRouter | Content generation and revision through extensible LLMs. |
+| Search & Cache | Custom | Scraping optimization and PDF management. |
+
+## How It Works
+
+1. **Input and Planning**: The user enters the research topic. The planner conducts preventive research to determine the most useful queries and develop a draft section plan.
+
+2. **Human Review**: The plan is presented to the user, who can provide feedback to revise it or approve it.
+
+3. **Research and Generation**: The system executes web searches in parallel for each section, aggregates and caches sources, and generates content using distinct prompts for the first draft and subsequent revisions.
+
+4. **Citations and Sources**: Each section includes renumbered citations, with source consolidation for clarity and verifiability.
+
+5. **Final Review**: The complete report undergoes automatic global revision and, if necessary, manual review.
+
+6. **Live Visualization**: The front-end shows progress in real-time, allows feedback, and permits aborting the process at any time.
+
+
+## Installation
+
+> **Note:** Detailed instructions will be available soon.
+> A Python configuration is required for the back-end and a .NET environment for the front-end.
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/your-username/deep-research-italiano.git
+```
+
+## Usage
+
+- Configure the API key for `openrouter`.
+- Start the back-end (deep_research_server.py) and the front-end with vs2022.
+- Access the Blazor interface to:
+  - Enter the search query
+  - Monitor the report generation in real-time
+  - Provide feedback and revise content
+  - Interrupt or modify the process when necessary
+- View and download the final report with all organized citations.
+
+**Prerequisites:**
+
+- .NET 8+ (for Blazor front-end)
+- Python 3.10+ (for LangGraph and back-end)
+- Access to OpenRouter or your own LLM endpoint (optional)
+
+
+## Inspiration and Differences
+
+The project is inspired by [LangChain's open_deep_research](https://github.com/langchain-ai/open_deep_research), but introduces several innovations:
+
+- Specific optimization for the Italian language
+- Completely revised prompts
+- Modified planning and revision workflow
+- Interactive and modern front-end
+- Advanced management of citations and sources
+- Native support for PDFs and content caching
+
+
+## Roadmap
+
+- Integration of new search systems
+- Specific version for the legal field
+- Improvement of Blazor UI/UX
+- Extension to on-premise LLMs
+
+
+## Contributing
+
+Contributions, suggestions, and reports are welcome!
+
+## License
+
+This project is distributed under the MIT license.
+See the `LICENSE` file for details.
+
+---
+
+*Deep Research Italiano: automated, transparent, and collaborative research for the Italian language.*
