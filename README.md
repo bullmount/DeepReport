@@ -1,6 +1,6 @@
 # Deep Research Italiano  
   
-Sistema avanzato di deep-research automatizzata per la lingua italiana, con architettura back-end modulare (basata su LangGraph) e front-end interattivo sviluppato in Blazor. Ispirato a [Open Deep Research di LangChain](https://github.com/langchain-ai/open_deep_research), ma profondamente rivisto per ottimizzare la ricerca, la generazione e la revisione di report complessi in italiano con citazione delle fonti per una maggiore trasparenza.
+Sistema di deep-research automatizzata per la lingua italiana, con architettura back-end modulare (basata su LangGraph) e front-end interattivo sviluppato in Blazor. Ispirato a [Open Deep Research di LangChain](https://github.com/langchain-ai/open_deep_research), ma profondamente rivisto per ottimizzare la ricerca, la generazione e la revisione di report complessi in italiano con citazione delle fonti per una maggiore trasparenza.
   
 ![Schema del sistema di deep research](Ita_deep_research.png)
 
@@ -25,9 +25,9 @@ Il back-end, sviluppato con [LangGraph](https://github.com/langchain-ai/langgrap
   
 ## Caratteristiche principali  
   
-- **Pianificazione intelligente**: Il planner effettua una ricerca preliminare per determinare le query più efficaci, ottimizzando la suddivisione delle sezioni del report.  
-- **Human-in-the-loop**: Supporto completo al feedback umano, con possibilità di revisionare e approvare il piano delle sezioni e i contenuti generati.  
-- **Ricerca senza API key**: Utilizzo di sistemi di ricerca che non richiedono API key, garantendo facilità di avvio e costi ridotti.  Può essere esteso con servizi a pagamento.
+- **Pianificazione intelligente**: Il planner effettua una ricerca preliminare per determinare le query più efficaci, ottimizzando la ricerca per il planning delle sezioni del report.  
+- **Human-in-the-loop**: Supporto completo al feedback umano, con possibilità di approvare il piano delle sezioni o fornire un feedback per revisionarlo.  
+- **Ricerca senza API key**: Utilizzo di sistemi di ricerca che non richiedono API key, garantendo facilità di avvio e costi ridotti.  Può essere comunque esteso con servizi a pagamento.
 - **Prompt specifici**: Prompt completamente rivisti per la stesura e la revisione delle sezioni, con strategie per evitare sovrapposizioni tra i writer e migliorare la coerenza del report.  
 - **Citazioni trasparenti**: Generazione di contenuti con citazioni numerate (ottenute con accorpamento delle fonti acquisite per ogni sezione), garantendo tracciabilità e trasparenza delle fonti.
 - **Revisione finale**: Fase dedicata alla revisione globale del report per garantire coerenza, completezza e qualità.  
