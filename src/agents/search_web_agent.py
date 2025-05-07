@@ -18,7 +18,6 @@ class SearchWebAgent(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
-    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         self.event_notify(event_data=EventData(event_type="INFO",
                                                state=ProcessState.WritingSection,

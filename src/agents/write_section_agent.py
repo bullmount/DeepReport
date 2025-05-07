@@ -34,7 +34,6 @@ class WriteSectionAgent(DeepReportAgentBase):
                                                message="Sezione completata",
                                                data=dict(LoadSectionData(state, FaseSezione.COMPLETE))))
 
-    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig):
         self.event_notify(event_data=EventData(event_type="INFO",
                                                state=ProcessState.WritingSection,

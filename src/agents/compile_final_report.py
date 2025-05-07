@@ -75,7 +75,6 @@ class CompileFinalReport(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
-    @time_tracker
     def invoke(self, state: DeepReportState, config: RunnableConfig):
         sections = state.sections
 

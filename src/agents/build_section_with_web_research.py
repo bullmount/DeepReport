@@ -34,7 +34,6 @@ class BuildSectionWithWebResearch(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
-    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         res = self._graph.invoke(state, config)
         return res

@@ -27,7 +27,6 @@ class ReportPlannerAgent(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
-    @time_tracker
     def invoke(self, state: DeepReportState, config: RunnableConfig) -> Dict[str, any]:
         topic = state.topic
         feedback = state.feedback_on_report_plan

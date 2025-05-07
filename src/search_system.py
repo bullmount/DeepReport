@@ -50,7 +50,6 @@ class SearchSystem:
     def __init__(self, search_api: SearchAPI):
         self._search_api = search_api
 
-    @time_tracker
     def execute_search(self, query_list: list[str],
                        max_filtered_results: int,
                        max_results_per_query: int,

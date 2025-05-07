@@ -22,7 +22,6 @@ class WriteFinalSectionsAgent(DeepReportAgentBase):
     def node(cls):
         return cls.Name, cls().invoke
 
-    @time_tracker
     def invoke(self, state: SectionState, config: RunnableConfig) -> Dict[str, any]:
         configurable = Configuration.from_runnable_config(config)
 
