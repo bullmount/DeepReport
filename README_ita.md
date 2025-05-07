@@ -1,4 +1,4 @@
-# Deep Research Italiano  
+# Deep Research per la lingua italiana  
   
 Sistema di deep-research automatizzata per la lingua italiana, con architettura back-end modulare (basata su LangGraph) e front-end interattivo sviluppato in Blazor. Ispirato a [Open Deep Research di LangChain](https://github.com/langchain-ai/open_deep_research), ma profondamente rivisto per ottimizzare la ricerca, la generazione e la revisione di report complessi in italiano con citazione delle fonti per una maggiore trasparenza.
   
@@ -71,7 +71,7 @@ Il back-end, sviluppato con [LangGraph](https://github.com/langchain-ai/langgrap
 1. Clona il repository:  
   
 ```bash  
-git clone https://github.com/tuo-username/deep-research-italiano.git 
+git clone https://github.com/bullmount/DeepReport.git
 ```
   
 ## Utilizzo  
