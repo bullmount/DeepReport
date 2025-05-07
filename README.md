@@ -2,6 +2,8 @@
   
 Sistema avanzato di deep-research automatizzata per la lingua italiana, con architettura back-end modulare (basata su LangGraph) e front-end interattivo sviluppato in Blazor. Ispirato a [Open Deep Research di LangChain](https://github.com/langchain-ai/open_deep_research), ma profondamente rivisto per ottimizzare la ricerca, la generazione e la revisione di report complessi in italiano con citazione delle fonti per una maggiore trasparenza.
   
+![Schema del sistema di deep research](Ita_deep_research.png)
+
 ## Indice  
   
 - [Descrizione](#descrizione)  
