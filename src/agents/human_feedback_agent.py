@@ -1,5 +1,3 @@
-import os
-from pathlib import Path
 from typing import Dict, Literal
 from langchain_core.runnables import RunnableConfig
 
@@ -58,15 +56,6 @@ Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
         }
 
         feedback = interrupt({"question": interrupt_message, "sections": data})
-
-        # --------------------------------------
-        # file_path = Path("completed_sections.json")
-        # if file_path.exists():
-        #     data = file_path.read_text(encoding="utf-8")
-        #     sections_loaded = Sections.model_validate_json(data)
-        #     return Command(update={"completed_sections": sections_loaded.sezioni},
-        #                    goto=GatherCompletedSections.Name)
-        # --------------------------------------
 
         if isinstance(feedback, str):
             if feedback.lower() == "si" or feedback.lower() == "ok":

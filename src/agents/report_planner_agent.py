@@ -14,7 +14,6 @@ from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
 from utils.utils import get_config_value, get_current_date, estrai_sezioni_markdown_e_indice_assegnata
-from pathlib import Path
 
 
 class ReportPlannerAgent(DeepReportAgentBase):
@@ -37,17 +36,6 @@ class ReportPlannerAgent(DeepReportAgentBase):
 
         search_sys = SearchSystem(configurable.search_api)
         sources_formatter = SourcesFormatter()
-
-        # --------------------------------------------------
-        # file_path_1 = Path("sections.json")
-        # file_path_2 = Path("queries.json")
-        # if not feedback and file_path_1.exists() and file_path_2.exists():
-        #     data = file_path_1.read_text(encoding="utf-8")
-        #     sections_loaded = Sections.model_validate_json(data)
-        #     data = file_path_2.read_text(encoding="utf-8")
-        #     queries_loaded = Queries.model_validate_json(data)
-        #     return {"queries": queries_loaded, "themes": sections_loaded.tematiche, "sections": sections_loaded.sezioni}
-        # --------------------------------------------------
 
         if isinstance(report_structure, dict):
             report_structure = str(report_structure)
@@ -74,7 +62,7 @@ class ReportPlannerAgent(DeepReportAgentBase):
                                                state=ProcessState.Searching,
                                                message="Determinazione query di ricerca"))
 
-        if feedback is None:  # query per la prima pianificazione
+        if feedback is None:  # QUERY PER LA PRIMA PIANIFICAZIONE
             system_instructions_query = report_planner_query_writer_instructions.format(topic=topic,
                                                                                         current_date=current_date,
                                                                                         starting_knowledge=starting_knowledge,
@@ -86,7 +74,7 @@ class ReportPlannerAgent(DeepReportAgentBase):
                                                  content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")],
                                             response_format=Queries.model_json_schema())
             queries: Queries = parse_model(Queries, results.content)
-        else:   # query per revisione della pianificazione
+        else:   # QUERY PER REVISIONE DELLA PIANIFICAZIONE
             _, proposed_structure = estrai_sezioni_markdown_e_indice_assegnata(state.sections, None,
                                                                                include_assegnata=True)
             system_instructions_query = report_planner_query_writer_with_feedback_instructions.format(topic=topic,
@@ -129,7 +117,7 @@ class ReportPlannerAgent(DeepReportAgentBase):
                                                state=ProcessState.Planning,
                                                message="Pianificazione sezioni del report."))
 
-        if feedback is None:  # prima pianificazione
+        if feedback is None:  # PRIMA PIANIFICAZIONE
             system_instructions_sections = report_planner_instructions_initial.format(topic=topic,
                                                                                       report_organization=report_structure,
                                                                                       context=source_str,
@@ -167,16 +155,6 @@ class ReportPlannerAgent(DeepReportAgentBase):
         for s in sections.sezioni:
             section_pos = section_pos + 1
             s.posizione = section_pos
-
-        # --------------------
-        # output_path = Path("sections.json")
-        # with open(output_path, "w", encoding="utf-8") as f:
-        #     f.write(sections.model_dump_json(indent=4))
-        #
-        # output_path = Path("queries.json")
-        # with open(output_path, "w", encoding="utf-8") as f:
-        #     f.write(queries.model_dump_json(indent=4))
-        # --------------------
 
         return {"queries": queries, "themes": sections.tematiche,
                 "bad_search_results": bad_urls,

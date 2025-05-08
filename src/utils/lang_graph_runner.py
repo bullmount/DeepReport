@@ -1,4 +1,3 @@
-import asyncio
 import concurrent.futures
 import signal
 import sys
@@ -11,7 +10,6 @@ from langchain_core.runnables import RunnableConfig
 
 
 class GraphRunningState:
-    """Classe che rappresenta lo stato di esecuzione del grafo"""
     IDLE = "idle"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -21,12 +19,6 @@ class GraphRunningState:
 
 
 class LangGraphRunner:
-    """
-    Runner per l'esecuzione controllata di grafi LangGraph, con supporto per:
-    - Esecuzione sincrona con timeout
-    - Esecuzione asincrona con possibilità di abort forzato
-    - Callback per eventi e progresso
-    """
 
     def __init__(self):
         """Inizializza il runner."""
@@ -402,33 +394,12 @@ class LangGraphRunner:
         return False
 
     def get_state(self) -> str:
-        """
-        Restituisce lo stato attuale dell'esecuzione
-
-        Returns:
-            Lo stato di esecuzione corrente
-        """
         return self._state
 
     def is_running(self) -> bool:
-        """
-        Controlla se il grafo è in esecuzione
-
-        Returns:
-            True se il grafo è in esecuzione, False altrimenti
-        """
         return self._state == GraphRunningState.RUNNING
 
     def get_result(self, timeout: Optional[float] = None) -> Any:
-        """
-        Ottiene il risultato dell'esecuzione, aspettando se necessario
-
-        Args:
-            timeout: Timeout in secondi (None per attendere indefinitamente)
-
-        Returns:
-            Il risultato dell'esecuzione o None in caso di timeout
-        """
         if self._future and not self._future.done():
             try:
                 if timeout is not None:
@@ -454,19 +425,7 @@ class LangGraphRunner:
         return self._current_state
 
     def get_current_state(self) -> Any:
-        """
-        Ottiene lo stato corrente dell'esecuzione
-
-        Returns:
-            Lo stato corrente del grafo
-        """
         return self._current_state
 
     def get_error(self) -> Optional[Exception]:
-        """
-        Ottiene l'errore verificatosi durante l'esecuzione, se presente
-
-        Returns:
-            L'eccezione verificatasi o None
-        """
         return self._error

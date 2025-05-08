@@ -1,11 +1,3 @@
-"""
-https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/?ref=blog.langchain.dev
-https://blog.langchain.dev/making-it-easier-to-build-human-in-the-loop-agents-with-interrupt/
-https://langchain-ai.github.io/langgraph/how-tos/human_in_the_loop/wait-user-input/
-
-"""
-
-
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import Command, interrupt

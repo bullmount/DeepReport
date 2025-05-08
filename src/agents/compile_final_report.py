@@ -1,5 +1,4 @@
 from typing import Tuple, List, Dict
-
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 import time
@@ -26,7 +25,6 @@ def remap_sources(sezioni: List[Section]) -> Tuple[List[Section], List[SearchEng
         for fonte in sezione.sources:
             if fonte['url'] not in url_to_new_number:
                 url_to_new_number[fonte['url']] = prossimo_numero
-                # nuova_lista_fonti.append(fonte['url'])
                 x = fonte.copy()
                 x['num_source'] = prossimo_numero
                 elenco_unico_fonti.append(x)

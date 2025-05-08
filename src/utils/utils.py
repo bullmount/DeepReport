@@ -1,5 +1,4 @@
 from typing import List, Tuple, Optional
-
 from deep_report_state import Section
 from datetime import datetime
 import locale

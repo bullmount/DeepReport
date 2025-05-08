@@ -45,16 +45,16 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                 "fetch_full_page": fetch_full_page,
 
                 # uso modello proprietario
-                "planner_provider": "my_provider",
-                "planner_model": "gpt-4o-mini",
-                "writer_provider": "my_provider",
-                "writer_model": "gpt-4o-mini",
+                # "planner_provider": "my_provider",
+                # "planner_model": "gpt-4o-mini",
+                # "writer_provider": "my_provider",
+                # "writer_model": "gpt-4o-mini",
 
                 # uso di openrouter
-                # "planner_provider": "openrouter",
-                # "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
-                # "writer_provider": "openrouter",
-                # "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                "planner_provider": "openrouter",
+                "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                "writer_provider": "openrouter",
+                "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
             }
         )
         self._config = config

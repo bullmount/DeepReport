@@ -5,8 +5,8 @@ from flask_cors import CORS
 from pydantic import BaseModel, ValidationError
 from dotenv import load_dotenv
 
-from api.requests_data import ResearchRequest, FeedbackRequest
-from api.response_data import ResearchResponse, AbortResponse
+from api_data.requests_data import ResearchRequest, FeedbackRequest
+from api_data.response_data import ResearchResponse, AbortResponse
 from chief_deep_report_agent import ChiefDeepReportAgent
 
 load_dotenv()

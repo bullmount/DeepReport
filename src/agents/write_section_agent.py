@@ -4,14 +4,13 @@ from langchain_core.runnables import RunnableConfig
 from agents.agent_base import DeepReportAgentBase, EventData
 from agents.search_web_agent import SearchWebAgent
 from configuration import Configuration
-from deep_report_state import SectionState, Feedback, Queries, SectionReview, DeepReportState
+from deep_report_state import SectionState, Queries, SectionReview
 from langgraph.graph import END
 from langgraph.types import Command
 
 from event_notifier import ProcessState, LoadSectionData, FaseSezione
 from prompts import section_grader_instructions_initial, section_writer_instructions_initial, \
     section_writer_instructions_review
-from utils import traccia_tempo
 from utils.json_extractor import parse_model
 from utils.llm_provider import llm_provide
 from utils.sources_formatter import SourcesFormatter
@@ -75,7 +74,7 @@ class WriteSectionAgent(DeepReportAgentBase):
         previous_search_queries = "\n".join(
             [f"{i + 1}. {q.search_query}" for i, q in enumerate(state.previous_search_queries)])
 
-        if state.search_iterations <= 1:  # caso di prima scrittura
+        if state.search_iterations <= 1:  # CASO DI PRIMA SCRITTURA
             section_writer_inputs_formatted = section_writer_instructions_initial.format(topic=topic,
                                                                                          report_structure=report_structure,
                                                                                          section_number=section_number,
