@@ -61,7 +61,7 @@ memory = MemorySaver()
 graph = builder.compile(checkpointer=memory)
 
 # View
-# display(Image(graph.get_graph().draw_mermaid_png()))
+display(Image(graph.get_graph().draw_mermaid_png()))
 graph.get_graph().draw_mermaid_png(output_file_path="test_human_in_the_loop.png")
 
 # Input
