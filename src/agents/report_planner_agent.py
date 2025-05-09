@@ -31,6 +31,8 @@ class ReportPlannerAgent(DeepReportAgentBase):
         feedback = state.feedback_on_report_plan
 
         configurable = Configuration.from_runnable_config(config)
+        abort_signal = configurable.abort_signal
+
         report_structure = configurable.report_structure
         number_of_queries = configurable.number_of_queries
 
@@ -74,7 +76,7 @@ class ReportPlannerAgent(DeepReportAgentBase):
                                                  content="Genera query di ricerca che aiutino a pianificare le sezioni del report.")],
                                             response_format=Queries.model_json_schema())
             queries: Queries = parse_model(Queries, results.content)
-        else:   # QUERY PER REVISIONE DELLA PIANIFICAZIONE
+        else:  # QUERY PER REVISIONE DELLA PIANIFICAZIONE
             _, proposed_structure = estrai_sezioni_markdown_e_indice_assegnata(state.sections, None,
                                                                                include_assegnata=True)
             system_instructions_query = report_planner_query_writer_with_feedback_instructions.format(topic=topic,
@@ -104,6 +106,13 @@ class ReportPlannerAgent(DeepReportAgentBase):
                                                       include_raw_content=configurable.fetch_full_page,
                                                       sites=configurable.sites_search_restriction,
                                                       exclude_sources=state.bad_search_results)
+
+        if abort_signal.is_set():
+            return {
+                "queries": queries, "themes": [],
+                "bad_search_results": bad_urls,
+                "sections": []
+            }
 
         source_str = sources_formatter.format_sources(sources,
                                                       include_raw_content=True,

@@ -1,3 +1,4 @@
+import threading
 import time
 from typing import List
 
@@ -30,6 +31,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                  domains_search_restriction: List[str] = None,
                  fetch_full_page: bool = False):
         super().__init__()
+        self._abort_signal = threading.Event()
         task_id = str(int(time.time()))
         config: RunnableConfig = RunnableConfig(
 
@@ -49,6 +51,8 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                 "planner_model": "gpt-4o-mini",
                 "writer_provider": "my_provider",
                 "writer_model": "gpt-4o-mini",
+
+                "abort_signal": self._abort_signal,
 
                 # uso di openrouter
                 # "planner_provider": "openrouter",
@@ -177,6 +181,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
         ))
 
     def invoke(self, topic: str):
+        self._abort_signal.clear()
         memory = MemorySaver()
         research_team = self._init_research_team()
         chain = research_team.compile(checkpointer=memory)
@@ -208,6 +213,9 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
 
     def abort(self) -> bool:
         """Forza l'interruzione dell'esecuzione del grafo"""
+        if self._abort_signal:
+            self._abort_signal.set()
+
         if self._runner.abort():
             self.event_notify(event_data=EventData(
                 event_type="INFO",

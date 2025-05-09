@@ -1,4 +1,5 @@
 import os
+import threading
 from enum import Enum
 from dataclasses import dataclass, fields
 from typing import Any, Optional, Dict, List
@@ -43,6 +44,7 @@ class Configuration:
     planner_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-7-sonnet-latest
     writer_provider: str = "openrouter" # Defaults to Anthropic as provider
     writer_model: str = "mistralai/mistral-small-24b-instruct-2501:free" # Defaults to claude-3-5-sonnet-latest
+    abort_signal: Optional[threading.Event]=None
 
     @classmethod
     def from_runnable_config(
