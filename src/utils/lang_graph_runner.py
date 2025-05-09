@@ -171,7 +171,7 @@ class LangGraphRunner:
                                 # Gestiamo l'interruzione in modo non-bloccante
                                 self._current_state = interrupt_value
                                 # Attendiamo la risposta
-                                wait_start = time.time()
+                                # wait_start = time.time()
                                 while not self._abort_event.is_set():
                                     if hasattr(self, '_user_response') and self._user_response is not None:
                                         current_input = self._user_response
@@ -182,7 +182,7 @@ class LangGraphRunner:
                                     # if time.time() - wait_start > 30:  # timeout di 30 secondi per input utente
                                     #     break
 
-                                    time.sleep(0.1)
+                                    time.sleep(0.2)
 
                         # Aggiorna lo stato corrente
                         graph_state = chain.get_state(config)
@@ -368,28 +368,16 @@ class LangGraphRunner:
             return self._current_state
 
     def provide_user_response(self, response: Any):
-        """
-        Fornisce una risposta utente quando il grafo è in attesa di input
-
-        Args:
-            response: La risposta dell'utente
-        """
         if self._state == GraphRunningState.RUNNING:
             self._user_response = response
 
     def abort(self) -> bool:
-        """
-        Forza l'interruzione dell'esecuzione del grafo
-
-        Returns:
-            True se l'abort è stato richiesto, False se il grafo non è in esecuzione
-        """
         if self._state == GraphRunningState.RUNNING:
             print("Abort requested by user")
             self._should_abort = True
             self._abort_event.set()
             self._force_exit_thread()
-            self._set_state(GraphRunningState.ABORTED)
+            # self._set_state(GraphRunningState.ABORTED)
             return True
         return False
 

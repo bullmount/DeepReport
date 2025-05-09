@@ -108,8 +108,8 @@ class UrlFetcher:
                 )
                 page = context.new_page()
                 try:
-                    page.goto(url, wait_until="networkidle", timeout=30000)
-                    page.wait_for_load_state('networkidle', timeout=10000)
+                    page.goto(url, wait_until="load", timeout=8000)
+                    page.wait_for_load_state('networkidle', timeout=8000)
                     time.sleep(random.uniform(0.5, 1.5))
                     page.mouse.move(300, 400)
                     time.sleep(random.uniform(0.5, 1.5))

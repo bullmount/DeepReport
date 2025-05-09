@@ -11,10 +11,10 @@ def test_fetch_pdf():
     # url = "https://www.econ.univpm.it/content/centri-di-ricerca-e-servizio"
     # url = "https://www.arte.it/calendario-arte/ancona/2025/12/07/"
 
-    url = "https://biblus.acca.it/wp-content/uploads/download-manager-files/Legge_56_2024_di_conversione_con_modificazione_DL_19_2024.pdf"
+    # url = "https://biblus.acca.it/wp-content/uploads/download-manager-files/Legge_56_2024_di_conversione_con_modificazione_DL_19_2024.pdf"
     # url = 'https://biblus.acca.it/notizie/firmato-l-accordo-stato-regioni-per-la-formazione-sulla-sicurezza-ecco-la-bozza-definitiva/'
     # url = "https://www.ipsoa.it/documents/quotidiano/2025/04/24/accordo-stato-regioni-formazione-obblighi-arrivo-gestione-sicurezza-lavoro"
-
+    url = "https://www.aggiornamentisociali.it/articoli/lavoro-e-cittadinanza-al-voto-referendario/"
     url_loader = UrlFetcher()
     contents = url_loader.fetch_contents([url])
 

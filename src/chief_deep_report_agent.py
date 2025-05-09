@@ -45,16 +45,18 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                 "fetch_full_page": fetch_full_page,
 
                 # uso modello proprietario
-                # "planner_provider": "my_provider",
-                # "planner_model": "gpt-4o-mini",
-                # "writer_provider": "my_provider",
-                # "writer_model": "gpt-4o-mini",
+                "planner_provider": "my_provider",
+                "planner_model": "gpt-4o-mini",
+                "writer_provider": "my_provider",
+                "writer_model": "gpt-4o-mini",
 
                 # uso di openrouter
-                "planner_provider": "openrouter",
-                "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
-                "writer_provider": "openrouter",
-                "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                # "planner_provider": "openrouter",
+                # # "planner_model": "openai/gpt-4o-mini",
+                # "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                # "writer_provider": "openrouter",
+                # # "writer_model": "openai/gpt-4o-mini",
+                # "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
             }
         )
         self._config = config
@@ -114,8 +116,9 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                                                    state=ProcessState.WaitingForApproval,
                                                    message=interrupt_value['question'],
                                                    data=interrupt_value['sections']))
+            # todo: remove
             # per solo debug: input su console
-            # human_response = input(interrupt_value['question'])
+            # human_response =  "si" # "#input(interrupt_value['question'])
             # self._runner.provide_user_response(Command(resume=human_response))
 
     def plan_feedback(self, feedback):
