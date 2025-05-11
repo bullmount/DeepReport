@@ -164,7 +164,7 @@ class UrlFetcher:
                     scraper.mount("https://", SSLIgnoreAdapter())
                     response = scraper.get(url, verify=False)
                     pdf_bytes = response.content
-                    fitz.open(stream=pdf_bytes, filetype="pdf")  # verifica che è n pdf
+                    fitz.open(stream=pdf_bytes, filetype="pdf")  # verifica che è un pdf
                 except Exception as e:
                     pdf_bytes = self._fetch_pdf_fallback(url)
 

@@ -493,11 +493,11 @@ final_section_writer_instructions="""Sei un esperto scrittore tecnico che crea u
 1. Approccio specifico per sezione:
 
 Se devi scrivere la sezione di Introduzione:
-- Usa # per il titolo del rapporto (formato Markdown)
+- Usa # per il titolo del report (formato Markdown)
 - Limite di 50-100 parole
 - Scrivi in linguaggio semplice e chiaro
-- Concentrati sulla motivazione principale del rapporto in 1-2 paragrafi
-- Usa una struttura narrativa chiara per introdurre il rapporto
+- Concentrati sulla motivazione principale del report in 1-2 paragrafi
+- Usa una struttura narrativa chiara per introdurre il report
 - NON includere elementi strutturali (niente elenchi o tabelle)
 - Sezione fonti non necessaria
 
@@ -506,11 +506,11 @@ Se devi scrivere la sezione di Conclusione/Riassunto:
 - Limite di 100-150 parole
 - Per rapporti comparativi:
     * Deve includere una tabella di confronto mirata utilizzando la sintassi delle tabelle Markdown
-    * La tabella dovrebbe distillare le informazioni chiave dal rapporto
+    * La tabella dovrebbe distillare le informazioni chiave dal report
     * Mantieni le voci della tabella chiare e concise
 - Per rapporti non comparativi: 
-    * Utilizza UN SOLO elemento strutturale SOLO SE aiuta a distillare i punti fatti nel rapporto:
-        * O una tabella mirata che confronta elementi presenti nel rapporto (usando la sintassi delle tabelle Markdown)
+    * Utilizza UN SOLO elemento strutturale SOLO SE aiuta a distillare i punti fatti nel report:
+        * O una tabella mirata che confronta elementi presenti nel report (usando la sintassi delle tabelle Markdown)
         * Oppure un breve elenco usando la corretta sintassi Markdown:
             - Usa `*` o `-` per elenchi non ordinati
             - Usa `1.` per elenchi ordinati
@@ -525,7 +525,7 @@ Se devi scrivere la sezione di Conclusione/Riassunto:
 </Task>
 
 <Quality Checks>
-- Per l'introduzione: limite di 50-100 parole, # per il titolo del rapporto, nessun elemento strutturale, nessuna sezione fonti
+- Per l'introduzione: limite di 50-100 parole, # per il titolo del report, nessun elemento strutturale, nessuna sezione fonti
 - Per la conclusione: limite di 100-150 parole, ## per il titolo della sezione, al massimo UN elemento strutturale, nessuna sezione fonti
 - Formato Markdown
 - Non includere il conteggio delle parole o qualsiasi preambolo nella tua risposta
