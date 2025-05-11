@@ -15,7 +15,6 @@ class DeepReportAgentBase(ABC):
 
     def event_notify(self, event_data: EventData) -> None:
         try:
-            # todo: remove
             # json_data = event_data.to_json()
             # print(json_data)
             self._event_notifier.send_message(event_data)

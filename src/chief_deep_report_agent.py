@@ -56,11 +56,11 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
 
                 # uso di openrouter
                 "planner_provider": "openrouter",
-                # "planner_model": "openai/gpt-4o-mini",
-                "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                "planner_model": "openai/gpt-4o-mini",
+                # "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
                 "writer_provider": "openrouter",
-                # "writer_model": "openai/gpt-4o-mini",
-                "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                "writer_model": "openai/gpt-4o-mini",
+                # "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
             }
         )
         self._config = config
@@ -88,7 +88,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
     def _init_research_team(self) -> StateGraph:
         workflow = StateGraph(DeepReportState,
                               input=DeepReportStateInput,
-                              # output=DeepReportStateOutput,   #todo: metteree in output solo valori che servono
+                              # output=DeepReportStateOutput,   #todo: mettere in output solo valori che servono
                               config_schema=Configuration)
 
         # workflow nodes
