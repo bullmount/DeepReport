@@ -1,0 +1,23 @@
+﻿@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<DispatcherProvider/>
+ 
+<MudLayout>
+  <MudAppBar Elevation="1" Dense="true">
+    <MudText Typo="Typo.h5" Class="ml-3">DeepReport - Prototipo</MudText>
+    <MudSpacer />
+    <MudButton Size="Size.Large" Style="color:white;" Variant="Variant.Text" 
+               EndIcon="@Icons.Custom.Brands.GitHub" Href="https://github.com/bullmount/DeepReport" Target="_blank">
+    </MudButton>
+  </MudAppBar>
+  <MudMainContent Style="background-color:#ccc;height:100vh" >
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mud-elevation-2 mt-2" Style="height:calc(100vh - 100px); background-color:white;">
+      @Body
+    </MudContainer>
+  </MudMainContent>
+</MudLayout>

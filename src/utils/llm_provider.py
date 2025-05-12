@@ -1,8 +1,8 @@
 import os
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
-
 from custom_llm.my_chat_model import MyChatModel
+from custom_llm.openrouter_chat_model import OpenRouterChatModel
 
 
 def llm_provide(model_name: str, model_provider: str,
@@ -13,6 +13,9 @@ def llm_provide(model_name: str, model_provider: str,
                          base_url="https://openrouter.ai/api/v1",
                          max_tokens=max_tokens,
                          model=model_name, temperature=0.0)
+    elif model_provider == "openrouter-custom":
+        openai_api_key = os.getenv("OPENROUTER_API_KEY")
+        llm = OpenRouterChatModel(api_key= openai_api_key, model=model_name, temperature=0,max_tokens=max_tokens)
     elif model_provider == "my_provider":   # ad uso privato con server interno
         llm = MyChatModel(
             model=model_name, temperature=0, max_tokens=max_tokens,

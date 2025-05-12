@@ -1,0 +1,70 @@
+﻿<MudDialog Style="height:calc(100vh - 150px);" >
+  <TitleContent>
+  </TitleContent>
+  <DialogContent >
+    <MudStack style="height:100%;" StretchItems="StretchItems.None">
+      <div>
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+          <div>
+            <img src="images/topic.png" width="32" />
+          </div>
+          <div>
+            <div style="font-size:0.8em;">
+              Argomento del report:
+            </div>
+            <strong> @Topic </strong>
+          </div>
+        </MudStack>
+        <MudText Typo="Typo.h6">Sezioni proposte per il report</MudText>
+      </div>
+       <div style="overflow-y:auto;flex-grow:1;border:solid 1px #bbb;background:#f0f0f0;" class="mud-elevation-3">
+        @for (var i = 0; i < 1; i++)
+        {
+          var k = 0;
+          @foreach (var sezione in Proposta.Sezioni)
+          {
+            k++;
+            <div style="border-bottom:solid 1px #ccc;" class="pa-2">
+              <div style="font-weight:bold;color:#0000A0">
+                @(k). @sezione.Titolo
+              </div>
+              <div style="font-size:0.9em;">
+                @sezione.Descrizione
+              </div>
+            </div>
+          }
+        }
+      </div>
+      <div >
+        <MudTextField T="string" ShrinkLabel="true"
+                      Variant="Variant.Outlined" Lines="2"
+                      @bind-Value="@_feedback"
+                      Label="Esprimi un feedback sulla sezioni proposte (se approvi questa proposta premi approva)"></MudTextField>
+
+      </div> 
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudStack Row="true" Style="width:100%;" Reverse="true" Class="px-4">
+      <div>
+        <MudButton Variant="Variant.Filled" Color="Color.Success"
+                   OnClick="OnClickApprove"
+                   StartIcon="@Icons.Material.Outlined.Approval"
+                   Size="Size.Small">Approva le sezioni proposte</MudButton>
+      </div>
+      <div>
+        <MudButton Variant="Variant.Outlined"
+                   OnClick="OnClickSendFeedback"
+                   Color="Color.Primary" StartIcon="@Icons.Material.Outlined.Feedback"
+                   Size="Size.Small">Invia feedback per una nuova proposta</MudButton>
+      </div>
+      <div style="flex-grow:1;"></div>
+      <div>
+        <MudButton Variant="Variant.Text"
+                   OnClick="OnClickAbort"
+                   Color="Color.Error" StartIcon="@Icons.Material.Outlined.DeleteForever"
+                   Size="Size.Small">Abortisci il report</MudButton>
+      </div>
+    </MudStack>
+  </DialogActions>
+</MudDialog>

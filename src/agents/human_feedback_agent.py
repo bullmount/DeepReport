@@ -35,13 +35,13 @@ class HumanFeedbackAgent(DeepReportAgentBase):
         )
 
         # Get feedback on the report plan from interrupt
-        interrupt_message = f"""Per favore, fornisci un feedback sul seguente piano del rapporto. 
+        interrupt_message = f"""Per favore, fornisci un feedback sul seguente piano del report. 
                                
 {sections_str}
 
-Il piano del rapporto soddisfa le tue esigenze?
-Inserisci 'si' per approvare il piano del rapporto.
-Oppure, fornisci un feedback per rigenerare il piano del rapporto:"""
+Il piano del report soddisfa le tue esigenze?
+Inserisci 'si' per approvare il piano del report.
+Oppure, fornisci un feedback per rigenerare il piano del report:"""
 
         data = {
             "sezioni":

@@ -46,21 +46,30 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
                 "sites_search_restriction": domains_search_restriction,
                 "fetch_full_page": fetch_full_page,
 
-                # uso modello proprietario
+                "abort_signal": self._abort_signal,
+
+                # uso modello privato -------------------
                 # "planner_provider": "my_provider",
                 # "planner_model": "gpt-4o-mini",
                 # "writer_provider": "my_provider",
                 # "writer_model": "gpt-4o-mini",
 
-                "abort_signal": self._abort_signal,
+                # uso di openrouter (langchain-open-ai) ---------------------------
+                # "planner_provider": "openrouter",
+                # "planner_model": "mistralai/mistral-small-3.1-24b-instruct:free",
+                # "writer_provider": "openrouter",
+                # "writer_model": "mistralai/mistral-small-3.1-24b-instruct:free",
 
-                # uso di openrouter
-                "planner_provider": "openrouter",
-                "planner_model": "openai/gpt-4o-mini",
+                # uso di openrouter (modello custom) ---------------------------
+                "planner_provider": "openrouter-custom",
+                # "planner_model": "openai/gpt-4.1-mini",
                 # "planner_model": "mistralai/mistral-small-24b-instruct-2501:free",
-                "writer_provider": "openrouter",
-                "writer_model": "openai/gpt-4o-mini",
+                "planner_model": "mistralai/mistral-small-3.1-24b-instruct:free",
+
+                "writer_provider": "openrouter-custom",
+                # "writer_model": "openai/gpt-4.1-mini",
                 # "writer_model": "mistralai/mistral-small-24b-instruct-2501:free",
+                "writer_model": "mistralai/mistral-small-3.1-24b-instruct:free",
             }
         )
         self._config = config
@@ -187,7 +196,7 @@ class ChiefDeepReportAgent(DeepReportAgentBase):
         chain = research_team.compile(checkpointer=memory)
         initial_state = DeepReportState(topic=topic, sections=[], completed_sections=[])
 
-        chain.get_graph().draw_mermaid_png(output_file_path="chief_deep_report_agent.png")
+        # chain.get_graph().draw_mermaid_png(output_file_path="chief_deep_report_agent.png")
 
         self.event_notify(event_data=EventData(event_type="INFO", state=ProcessState.Started,
                                                message="start DeepReport Team agents", data={}))

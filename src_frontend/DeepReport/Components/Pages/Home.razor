@@ -1,0 +1,111 @@
+﻿@page "/"
+
+@using DeepReport.Helpers
+@using DeepReport.Services
+@inherits Fluxor.Blazor.Web.Components.FluxorComponent
+
+
+<PageTitle>DeepReport - Home</PageTitle>
+
+
+<div>
+  <MudOverlay Visible="@_deepResearchState.Value.IsWaiting" DarkBackground="true" Absolute="true">
+    <MudProgressCircular Color="Color.Secondary" Indeterminate="true"/>
+  </MudOverlay>
+</div>
+
+
+<MudStack Row="true" Class="mt-2" Style="position:relative;">
+  <div>
+    <img src="/images/deepresearch.png" width="130"/>
+  </div>
+  <div>
+    <h1>Deep Report - Prototipo di deep research specifico per la lingua italiana</h1>
+    <div class="mt-4">
+      Le informazioni generate da questa piattaforma sono frutto di analisi automatizzate su fonti multiple.
+      <br/>
+      Questa applicazione è un prototipo in fase di sviluppo. I risultati generati sono a scopo dimostrativo e potrebbero contenere imprecisioni.<br/>
+      Non utilizzare le informazioni ottenute per decisioni ufficiali o critiche senza una verifica indipendente.
+    </div>
+  </div>
+</MudStack>
+
+<div class="mt-5">
+  <MudTextField T="string" Margin="Margin.Dense"
+                ShrinkLabel="true"
+                Placeholder="Scrivi qui l'argomento in modo conciso"
+                Variant="Variant.Outlined"
+                @bind-Value="_topic"
+                Label="Specifica l'argomento su cui effettuare ricerche ed elaborare un report strutturato" Lines="4" AutoGrow="true">
+
+  </MudTextField>
+</div>
+
+<div style="width:100%;text-align:center;">
+  <MudButton Variant="Variant.Filled"
+             StartIcon="@Icons.Material.Outlined.ManageSearch"
+             Color="Color.Primary"
+             OnClick="SendRequest">
+    Avvia elaborazione report...
+  </MudButton>
+
+</div>
+
+<MudText Typo="Typo.h5">Parametri di configurazione</MudText>
+<MudStack Row="true" Style="max-width:600px;" Wrap="Wrap.Wrap">
+  <div style="width:280px">
+    <MudNumericField Label="Numero query per ogni ricerca" ShrinkLabel="true"
+                     Margin="Margin.Dense" Variant="Variant.Outlined"
+                     Min="1" @bind-Value="_config.number_of_queries">
+    </MudNumericField>
+
+  </div>
+  <div style="width:280px">
+    <MudNumericField Label="Numero massimo di fonti per query" ShrinkLabel="true"
+                     Margin="Margin.Dense" Variant="Variant.Outlined"
+                     Min="1" @bind-Value="_config.max_results_per_query">
+    </MudNumericField>
+  </div>
+  <div style="width:280px">
+    <MudSelect T="string" @bind-Value="@(_config.search_api)" Variant="Variant.Outlined"
+               Text="@(_config.search_api.ToString())" Label="Motore di ricerca"
+               Margin="Margin.Dense" Dense="true" ShrinkLabel="true">
+      @foreach (ESearchApi x in Enum.GetValues(typeof(ESearchApi)))
+      {
+        <MudSelectItem T="string" Value="@(x.ToString())">@(x.GetDescription())</MudSelectItem>
+      }
+    </MudSelect>
+  </div>
+  <div style="width:280px">
+    <MudNumericField Label="Massima prodondità nella ricerca" ShrinkLabel="true"
+                     Margin="Margin.Dense" Variant="Variant.Outlined"
+                     Min="1" @bind-Value="_config.max_search_depth">
+    </MudNumericField>
+  </div>
+</MudStack>
+<div>
+  <MudCheckBox Size="Size.Medium"
+               Color="Color.Primary"
+               @bind-Value="_config.fetch_full_page"
+               T="bool" Label="Leggi il contenuto della pagine (non limitarti alla breve descrizione del web search engine)"></MudCheckBox>
+</div>
+
+<div>
+  <MudCheckBox Size="Size.Medium"
+               Color="Color.Primary" @bind-Value="_usa_domini_specifici"
+               T="bool" Label="Abilita ricerca su domini specifici"></MudCheckBox>
+
+</div>
+<div>
+  <MudButton Variant="Variant.Filled" Disabled="@(!_usa_domini_specifici)"
+             Color="Color.Primary" Size="Size.Small" OnClick="OnAddDominio" 
+             StartIcon="@Icons.Material.Outlined.Add">Aggiungi dominio...</MudButton>
+</div>
+<div class="mt-1">
+  @foreach (var domain in _domains)
+  {
+    <MudChip Size="Size.Medium" T="string" Disabled="@(!_usa_domini_specifici)"
+             Variant="Variant.Filled"
+             Color="@(_usa_domini_specifici ? Color.Success : Color.Default)" OnClose="() => OnRemoveDomain(domain)">@domain</MudChip>
+  }
+</div>
