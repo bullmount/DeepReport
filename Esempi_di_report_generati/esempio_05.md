@@ -1,6 +1,6 @@
 > #### Topic  *(report date: 08/05/2025)*
 > *Trend mercato italiano 2025*
-
+ 
 ----
 
 # 1. Introduzione
