@@ -40,12 +40,12 @@ Il back-end, sviluppato con [LangGraph](https://github.com/langchain-ai/langgrap
   
 ## Architettura  
   
-| Componente | Tecnologia | Descrizione |  
-| :-- | :-- | :-- |  
-| Back-end | LangGraph (Python) | Gestione workflow, pianificazione, scraping, generazione e revisione testi. |  
-| Front-end | Blazor (.NET) | Interfaccia utente reattiva, feedback, monitoraggio e controllo processo. |  
-| LLM | OpenRouter | Generazione e revisione dei contenuti tramite LLM estendibili. |  
-| Ricerca & Cache| Custom | Ottimizzazione scraping e gestione PDF. |  
+| Componente | Tecnologia | Descrizione                                                                                                            |  
+| :-- | :-- |:-----------------------------------------------------------------------------------------------------------------------|  
+| Back-end | LangGraph (Python) | Gestione workflow, pianificazione, scraping, generazione e revisione testi (posizionato nella cartella `src`).         |  
+| Front-end | Blazor (.NET) | Interfaccia utente reattiva, feedback, monitoraggio e controllo processo  (posizionato nella cartella `src_frontend`). |  
+| LLM | OpenRouter | Generazione e revisione dei contenuti tramite LLM estendibili.                                                         |  
+| Ricerca & Cache| Custom | Ottimizzazione scraping e gestione PDF.                                                                                |  
 
 ## Come funziona
 
